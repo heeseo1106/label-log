@@ -1,0 +1,718 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>POCA Label Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F2F4F7; --surface: #FFFFFF; --ink: #18202B; --muted: #5B6675; --line: #DCE1E7;
+  --accent: #EC5E52; --accent-ink: #FFFFFF; --fix: #7CBF3F; --fix-ink: #3E7516; --buy: #D7262E; --buy-ink: #B3202A; --edit: #E3A008; --bad: #C2413B; --ok: #3F8F2A;
+  --field: #F7F8FA; --shadow: 0 1px 2px rgba(24,32,43,.06);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #12161C; --surface: #1A2029; --ink: #E7EBF0; --muted: #9AA5B3; --line: #2D3542;
+    --accent: #FF8276; --accent-ink: #2A0F0C; --fix: #9FD66B; --fix-ink: #B5E28A; --buy: #FF5C61; --buy-ink: #FF8A8D; --edit: #F2C14E; --bad: #EE7B74; --ok: #9FD66B;
+    --field: #151A22; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #12161C; --surface: #1A2029; --ink: #E7EBF0; --muted: #9AA5B3; --line: #2D3542;
+  --accent: #FF8276; --accent-ink: #2A0F0C; --fix: #9FD66B; --fix-ink: #B5E28A; --buy: #FF5C61; --buy-ink: #FF8A8D; --edit: #F2C14E; --bad: #EE7B74; --ok: #9FD66B;
+  --field: #151A22; --shadow: none;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif; font-size: 15px; line-height: 1.55; }
+button, input, select { font: inherit; color: inherit; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 48px; }
+header.top > div:first-child { flex: 1 1 auto; min-width: 0; }
+header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 22px; }
+h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.summary { margin: 6px 0 0; color: var(--muted); }
+.summary b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.status { font-size: 13px; color: var(--muted); }
+.layout { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+.hint { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+
+/* 기록 슬립 */
+.slip { position: relative; border-top: 4px solid var(--accent); }
+@media (min-width: 861px) { .slip { position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); } }
+.slip.editing { border-top-color: var(--edit); }
+.field { margin-bottom: 14px; }
+.field > label, .field > .lab { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+.req::after { content: " *"; color: var(--bad); }
+.in { width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--field); min-height: 40px; }
+.in:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row-qty { display: grid; grid-template-columns: 1fr 96px; gap: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: var(--field); cursor: pointer; font-size: 13.5px; }
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.chip[aria-checked="true"] { border-color: color-mix(in srgb, var(--c) 55%, #000); background: var(--c); color: #1F2630; font-weight: 600; }
+.chip[aria-checked="true"] .dot { box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.35); }
+.chip:focus-visible, .seg button:focus-visible, .btn:focus-visible, .linkbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--field); padding: 8px 16px; cursor: pointer; border-right: 1px solid var(--line); }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-checked="true"] { background: color-mix(in srgb, var(--c) 26%, var(--surface)); color: var(--ink); font-weight: 600; box-shadow: inset 0 -3px 0 var(--c); }
+.more { margin: 4px 0 14px; }
+.more summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+.more[open] summary { margin-bottom: 10px; }
+.actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.btn { border: 0; border-radius: 8px; padding: 10px 18px; background: var(--accent); color: var(--accent-ink); font-weight: 600; cursor: pointer; min-height: 42px; }
+.btn[disabled] { opacity: .5; cursor: default; }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 500; }
+.msg { font-size: 13px; min-height: 20px; margin-top: 10px; }
+.msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
+.readonly-note { font-size: 13px; color: var(--muted); background: var(--field); border-radius: 8px; padding: 10px 12px; }
+
+/* 현황 */
+.stats { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.kpi .k { font-size: 13px; color: var(--muted); font-weight: 500; }
+.kpi .v { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin-top: 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi .v.word { font-size: 24px; }
+.kpi .s { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.bars { position: relative; }
+.bar { display: grid; grid-template-columns: minmax(96px, 140px) 1fr auto; gap: 10px; align-items: center; padding: 4px 0; cursor: pointer; border-radius: 6px; }
+.bar.dim { opacity: .35; }
+.bar .lb { font-size: 13.5px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar .lb .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+.bar .tr { display: flex; height: 16px; min-width: 0; }
+.bar .tr span { height: 100%; }
+.bar .tr span:first-child { border-radius: 3px 0 0 3px; } .bar .tr span:last-child { border-radius: 0 3px 3px 0; }
+.bar .n { font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; min-width: 72px; }
+.bar .n em { font-style: normal; color: var(--muted); }
+.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; line-height: 1.5; box-shadow: 0 6px 18px rgba(0,0,0,.14); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-weight: 500; color: var(--muted); padding: 8px; border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--surface); }
+td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.num { text-align: right; white-space: nowrap; }
+.pill.type-pill { color: #1F2630; box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.pill.act-pill { font-weight: 600; border-radius: 6px; border: 1px solid transparent; }
+.act-fix { background: color-mix(in srgb, var(--fix) 16%, transparent); border-color: color-mix(in srgb, var(--fix) 45%, transparent) !important; color: var(--fix-ink); }
+.act-buy { background: color-mix(in srgb, var(--buy) 10%, transparent); border-color: color-mix(in srgb, var(--buy) 35%, transparent) !important; color: var(--buy-ink); }
+.act-etc { background: var(--field); border-color: var(--line) !important; color: var(--muted); }
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; font-size: 12.5px; line-height: 1.5; }
+.pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+.code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+.empty { color: var(--muted); font-size: 13.5px; padding: 18px 0; }
+
+/* 내역 */
+.records { margin-top: 20px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 14px; }
+.filters .in { width: auto; min-width: 120px; min-height: 36px; padding: 6px 10px; }
+.filters .search { flex: 1 1 200px; }
+.rowcount { font-size: 14px; margin: 0 0 10px; }
+.rowcount b { font-weight: 600; font-variant-numeric: tabular-nums; }
+th.no-col, td.no-col { width: 1%; color: var(--muted); padding-right: 4px; }
+[data-copy] { cursor: copy; border-radius: 4px; }
+[data-copy]:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+[data-copy]:hover .code-num { text-decoration: underline; text-underline-offset: 3px; }
+[data-copy].copied { background: color-mix(in srgb, var(--fix) 28%, transparent); }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13.5px; z-index: 50; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.tablebox { max-height: 640px; overflow: auto; border-top: 1px solid var(--line); }
+.tablebox thead th { position: sticky; top: 0; z-index: 1; }
+.linkbtn { background: none; border: 0; padding: 2px 4px; color: var(--accent); cursor: pointer; font-size: 13px; }
+.linkbtn.danger { color: var(--bad); }
+tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent); }
+.listmgr { margin-top: 20px; }
+.listmgr summary { cursor: pointer; font-weight: 500; }
+.mgr { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-top: 14px; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 10px; border: 1px solid var(--line); border-radius: 999px; font-size: 13px; }
+.tag button { border: 0; background: none; cursor: pointer; color: var(--muted); padding: 0 6px; font-size: 15px; line-height: 1; }
+.addrow { display: flex; gap: 6px; }
+.addrow .in { min-height: 36px; padding: 6px 10px; }
+.addrow .btn { min-height: 36px; padding: 6px 14px; }
+@media (prefers-reduced-motion: no-preference) { .flash { animation: flash 1.2s var(--ease, ease-out); } @keyframes flash { from { background: color-mix(in srgb, var(--accent) 22%, transparent); } to { background: transparent; } } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>POCA Label Log</h1>
+      <p class="summary" id="summary">기록을 불러오는 중이에요.</p>
+    </div>
+    <div class="status"><span id="status"></span></div>
+  </header>
+
+  <div id="app">
+
+  <div class="layout">
+    <section class="panel slip" id="entry" aria-labelledby="entry-title">
+      <h2 id="entry-title">새 기록</h2>
+      <p class="hint" id="entry-hint">수정한 포토카드를 바로 기록하세요. 같은 카드를 여러 장 고쳤다면 수량에 장수를 넣으면 돼요.</p>
+      <div id="readonly" class="readonly-note" hidden>데이터베이스에 연결되지 않아 지금은 기록할 수 없어요.</div>
+      <div id="form">
+        <div class="row2">
+          <div class="field"><label class="req" for="f-date">날짜</label><input class="in" type="date" id="f-date"></div>
+          <div class="field"><label class="req" for="f-labeler">라벨팀</label><select class="in" id="f-labeler"></select></div>
+        </div>
+        <div class="field"><span class="lab req" id="lab-type">오류 유형</span><div class="chips" id="f-type" role="radiogroup" aria-labelledby="lab-type"></div></div>
+        <div class="row2">
+          <div class="field"><label for="f-collection">컬렉션</label><input class="in" id="f-collection" inputmode="numeric" autocomplete="off"></div>
+          <div class="field"><label for="f-inbound">입고번호</label><input class="in" id="f-inbound" inputmode="numeric" autocomplete="off"></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label for="f-before">수정 전</label><input class="in" id="f-before" autocomplete="off"></div>
+          <div class="field"><label for="f-after">수정 후</label><input class="in" id="f-after" autocomplete="off"></div>
+        </div>
+        <div class="field"><label class="req" for="f-product">포토카드명</label><input class="in" id="f-product" autocomplete="off"></div>
+        <div class="row-qty">
+          <div class="field"><label for="f-memo">메모</label><input class="in" id="f-memo" autocomplete="off"></div>
+          <div class="field"><label for="f-qty">수량</label><input class="in" type="number" min="1" max="999" step="1" id="f-qty" value="1"></div>
+        </div>
+        <div class="field"><span class="lab req" id="lab-action">처리</span><div class="seg" id="f-action" role="radiogroup" aria-labelledby="lab-action"></div></div>
+        <div class="actions">
+          <button class="btn" id="save" type="button">기록 저장</button>
+          <button class="btn ghost" id="cancel" type="button" hidden>수정 취소</button>
+        </div>
+        <div class="msg" id="msg" role="status" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="kpis">
+        <div class="panel kpi"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
+        <div class="panel kpi"><div class="k">최다 유형</div><div class="v word" id="k-top">—</div><div class="s" id="k-top-s">&nbsp;</div></div>
+      </div>
+      <section class="panel" aria-labelledby="bars-title">
+        <h2 id="bars-title">유형별 건수</h2>
+        <p class="hint">막대를 누르면 그 유형의 내역만 볼 수 있어요.</p>
+        <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
+        <div class="bars" id="bars"></div>
+      </section>
+      <section class="panel" aria-labelledby="matrix-title">
+        <h2 id="matrix-title">월별 유형 추이</h2>
+        <p class="hint">월·유형 필터와 상관없이 전체 기간을 보여줘요. 라벨팀 필터는 적용돼요.</p>
+        <div class="scroll"><table id="matrix" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody></table></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel records" aria-labelledby="rec-title">
+    <h2 id="rec-title">상세 내역</h2>
+    <div class="filters">
+      <select class="in" id="q-month" aria-label="월"></select>
+      <select class="in" id="q-type" aria-label="유형"></select>
+      <select class="in" id="q-labeler" aria-label="라벨팀"></select>
+      <input class="in search" id="q-text" type="search" placeholder="포토카드명이나 번호로 찾기" aria-label="포토카드명이나 번호로 찾기">
+      <button class="btn ghost" id="q-clear" type="button" hidden>필터 지우기</button>
+      <button class="btn ghost" id="export" type="button" hidden>CSV로 내려받기</button>
+    </div>
+    <p class="rowcount" id="rowcount" hidden></p>
+    <div class="tablebox">
+      <table aria-label="수정 상세 내역">
+        <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th class="num">수량</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <details class="panel listmgr" id="listmgr">
+    <summary>유형·라벨팀 목록 관리</summary>
+    <div class="mgr">
+      <div><div class="lab" style="font-size:13px;color:var(--muted);margin-bottom:8px">라벨팀</div><div class="tags" id="m-labelers"></div>
+        <div class="addrow"><input class="in" id="m-labeler-in" placeholder="이름 추가"><button class="btn" id="m-labeler-add" type="button">추가</button></div></div>
+      <div><div class="lab" style="font-size:13px;color:var(--muted);margin-bottom:8px">오류 유형</div><div class="tags" id="m-types"></div>
+        <div class="addrow"><input class="in" id="m-type-in" placeholder="유형 추가"><button class="btn" id="m-type-add" type="button">추가</button></div></div>
+    </div>
+    <p class="hint" style="margin-top:12px">목록에서 빼도 이미 저장된 기록은 그대로 남아요.</p>
+  </details>
+  </div>
+</div>
+
+<!-- Supabase 클라이언트 (버전 고정) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+  // ▼ Supabase 대시보드에서 복사해 넣으세요
+  //   SUPABASE_URL : Project URL (https://xxxx.supabase.co)
+  //   SUPABASE_KEY : Publishable key (sb_publishable_...) — 공개돼도 되는 키예요. Secret key(sb_secret_...)는 절대 넣지 마세요.
+  window.LABEL_LOG_CONFIG = {
+    SUPABASE_URL: 'https://onzoulyhdshttuccoesn.supabase.co',
+    SUPABASE_KEY: 'sb_publishable_2v7GE0ZMKwkHhTfgYpy88g_fop4DZo0',
+  };
+</script>
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  // 유형 색: 서로 다른 색상끼리 고른 파스텔. 수정(연두)·구매(빨강)과 겹치는 초록·빨강 계열은 쓰지 않아요
+  const TYPE_COLORS = {
+    '비슷한 이미지': '#C5DBFF', '멤버 오류': '#FFEEA8', 'COPY 오류': '#E1D3FF', '뒷면 다름': '#FFDBB9',
+    '음반사 다름': '#BBEAF0', '재질 다름': '#F8D1F5', '스페셜': '#EEDDC6', '뒷면 다름 (미등록)': '#D2D6FA',
+    '플랫폼 앨범': '#E8E2D9', '중복 등록': '#D3DBE2', '기타': '#E5E6E9', '미기재': '#F4F5F7',
+  };
+  const EXTRA = ['#CBEDF9', '#F0E5FF', '#FFF7CB', '#FFE8D4', '#DDE2FB', '#F1EAE0'];
+  const typeColor = (t) => TYPE_COLORS[t] || EXTRA[[...t].reduce((a, c) => a + c.charCodeAt(0), 0) % EXTRA.length];
+  const actColor = (a) => a === '수정' ? 'var(--fix)' : a === '구매' ? 'var(--buy)' : '#A0A4AB';
+  const DEFAULT_LISTS = { types: Object.keys(TYPE_COLORS).filter((t) => t !== '미기재'), labelers: [], actions: ['수정', '구매'] };
+  const sortKo = (arr) => [...arr].sort((a, b) => a.localeCompare(b, 'ko'));
+  const fmt = (n) => n.toLocaleString('ko-KR');
+  // 오류를 사람이 읽을 수 있는 글로 바꿔요 ([object Object] 대신 실제 이유가 보이게)
+  const errText = (e) => {
+    if (!e) return '알 수 없는 오류';
+    if (typeof e === 'string') return e;
+    const parts = [e.message, e.details, e.hint, e.code && `코드 ${e.code}`].filter(Boolean);
+    if (parts.length) return parts.join(' / ');
+    try { return JSON.stringify(e); } catch (_) { return String(e); }
+  };
+  const logErr = (where, e) => console.error(`[POCA Label Log] ${where}: ${errText(e)}`, e);
+  const pad = (n) => String(n).padStart(2, '0');
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const monthLabel = (ym) => { const [y, m] = ym.split('-'); return y === String(new Date().getFullYear()) ? `${Number(m)}월` : `${y}년 ${Number(m)}월`; };
+  const dayLabel = (d) => { const [, m, dd] = d.split('-'); return `${Number(m)}월 ${Number(dd)}일`; };
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const typePill = (t) => { const s = el('span', 'pill type-pill', t); s.style.background = typeColor(t); return s; };
+  const actPill = (a) => {
+    const kind = a === '수정' ? 'fix' : a === '구매' ? 'buy' : 'etc';
+    return el('span', `pill act-pill act-${kind}`, a);
+  };
+  const pill = (text, color) => { const s = el('span', 'pill'); s.style.background = `color-mix(in srgb, ${color} 16%, transparent)`; const d = el('i', 'dot'); d.style.background = color; s.append(d, el('span', null, text)); return s; };
+
+  const state = {
+    db: null, canWrite: false, uid: null,
+    records: [], loaded: false, lists: DEFAULT_LISTS,
+    f: { month: today().slice(0, 7), type: '', labeler: '', text: '' }, // 처음 열면 오늘이 속한 달을 보여줘요
+    form: { type: '', action: '수정' }, editingId: null, saving: false,
+  };
+
+  $('#lg-fix').style.background = 'var(--fix)'; $('#lg-buy').style.background = 'var(--buy)'; $('#lg-etc').style.background = '#A0A4AB';
+  $('#f-date').value = today();
+
+  // ---------- 데이터 ----------
+  const qty = (r) => Math.max(1, Number(r.qty) || 1);
+  const ym = (r) => (r.date || '').slice(0, 7);
+  const months = () => [...new Set(state.records.map(ym).filter(Boolean))].sort();
+  const inFilter = (r, opts = {}) => {
+    const f = state.f;
+    if (!opts.noMonth && f.month && ym(r) !== f.month) return false;
+    if (!opts.noType && f.type && r.type !== f.type) return false;
+    if (f.labeler && (r.labeler || '미기재') !== f.labeler) return false;
+    if (!opts.noText && f.text) {
+      const q = f.text.toLowerCase();
+      if (![r.product, r.before, r.after, r.memo, r.collection, r.inbound].some((v) => (v || '').toLowerCase().includes(q))) return false;
+    }
+    return true;
+  };
+
+  // ---------- 그리기 ----------
+  function renderAll() {
+    renderFilters(); renderSummary(); renderBars(); renderMatrix(); renderRows();
+  }
+
+  function renderFilters() {
+    // 이번 달은 아직 기록이 없어도 목록에 넣어 둬요 (예: 12월 1일에 열었을 때)
+    const ms = [...new Set([...months(), today().slice(0, 7), state.f.month].filter(Boolean))].sort();
+    const mSel = $('#q-month');
+    mSel.replaceChildren(new Option('전체 기간', ''), ...ms.map((m) => new Option(monthLabel(m), m)));
+    mSel.value = state.f.month;
+    const types = sortKo(new Set([...state.lists.types, ...state.records.map((r) => r.type)].filter(Boolean)));
+    const tSel = $('#q-type');
+    tSel.replaceChildren(new Option('전체 유형', ''), ...types.map((t) => new Option(t, t)));
+    tSel.value = state.f.type;
+    const labs = [...new Set([...state.lists.labelers, ...state.records.map((r) => r.labeler || '미기재')])].filter(Boolean)
+      .sort((a, b) => (a === '미기재') - (b === '미기재') || a.localeCompare(b, 'ko'));
+    const lSel = $('#q-labeler');
+    lSel.replaceChildren(new Option('전체 라벨팀', ''), ...labs.map((t) => new Option(t, t)));
+    lSel.value = state.f.labeler;
+    $('#q-clear').hidden = !(state.f.type || state.f.labeler || state.f.text);
+  }
+
+  function renderSummary() {
+    if (!state.loaded) return;
+    const rows = state.records.filter((r) => inFilter(r, { noText: true }));
+    const total = rows.reduce((a, r) => a + qty(r), 0);
+    const by = new Map(); rows.forEach((r) => by.set(r.type, (by.get(r.type) || 0) + qty(r)));
+    const top = [...by].sort((a, b) => b[1] - a[1])[0];
+    const buy = rows.filter((r) => r.action === '구매').reduce((a, r) => a + qty(r), 0);
+    const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
+    const who = state.f.labeler ? ` ${state.f.labeler} 님의` : '';
+    const s = $('#summary'); s.replaceChildren();
+    if (!total) { s.append(`${period}${who} 기록이 아직 없어요.`); }
+    else {
+      s.append(`${period}${who} 수정 내역은 `, el('b', null, `${fmt(total)}건`), '이고, 가장 많은 유형은 ',
+        el('b', null, top[0]), `(${fmt(top[1])}건, ${(top[1] / total * 100).toFixed(1)}%)이에요. 구매로 처리한 건은 `,
+        el('b', null, `${fmt(buy)}건`), `(${(buy / total * 100).toFixed(1)}%)이에요.`);
+    }
+    $('#k-total').textContent = fmt(total);
+    const dates = rows.map((r) => r.date).filter(Boolean).sort();
+    $('#k-total-s').textContent = dates.length ? `${dayLabel(dates[0])}~${dayLabel(dates[dates.length - 1])}` : ' ';
+    $('#k-top').textContent = top ? top[0] : '—';
+    $('#k-top-s').textContent = top ? `${fmt(top[1])}건 · 전체의 ${(top[1] / total * 100).toFixed(1)}%` : ' ';
+  }
+
+  function renderBars() {
+    const box = $('#bars'); box.replaceChildren();
+    if (!state.loaded) { box.append(el('div', 'empty', '불러오는 중이에요.')); return; }
+    const rows = state.records.filter((r) => inFilter(r, { noType: true, noText: true }));
+    const g = new Map();
+    rows.forEach((r) => {
+      if (!g.has(r.type)) g.set(r.type, { type: r.type, n: 0, fix: 0, buy: 0, etc: 0 });
+      const o = g.get(r.type); const q = qty(r); o.n += q;
+      if (r.action === '수정') o.fix += q; else if (r.action === '구매') o.buy += q; else o.etc += q;
+    });
+    const data = [...g.values()].sort((a, b) => b.n - a.n);
+    if (!data.length) { box.append(el('div', 'empty', '이 조건에 해당하는 기록이 없어요.')); return; }
+    const sum = data.reduce((a, o) => a + o.n, 0); const max = data[0].n;
+    const tip = el('div', 'tip'); tip.hidden = true;
+    data.forEach((o) => {
+      const row = el('div', 'bar' + (state.f.type && state.f.type !== o.type ? ' dim' : ''));
+      row.tabIndex = 0; row.setAttribute('role', 'button');
+      row.setAttribute('aria-label', `${o.type} ${o.n}건, 구매 ${o.buy}건. 눌러서 이 유형만 보기`);
+      const lb = el('div', 'lb'); const d = el('i', 'dot'); d.style.background = typeColor(o.type); lb.append(d, el('span', null, o.type));
+      const tr = el('div', 'tr');
+      [[o.fix, 'var(--fix)'], [o.buy, 'var(--buy)'], [o.etc, '#A0A4AB']].forEach(([n, c]) => { if (!n) return; const s = el('span'); s.style.width = `${n / max * 100}%`; s.style.background = c; tr.append(s); });
+      const n = el('div', 'n'); n.append(el('b', null, fmt(o.n))); if (o.buy) n.append(el('em', null, ` · 구매 ${fmt(o.buy)}`));
+      row.append(lb, tr, n);
+      const pick = () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); };
+      row.addEventListener('click', pick);
+      row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+      const show = (e) => {
+        tip.replaceChildren(el('div', null, o.type), el('div', null, `${fmt(o.n)}건 · ${(o.n / sum * 100).toFixed(1)}%`), el('div', null, `수정 ${fmt(o.fix)} · 구매 ${fmt(o.buy)}${o.etc ? ` · 기타 ${fmt(o.etc)}` : ''}`));
+        tip.firstChild.style.fontWeight = '600'; tip.hidden = false;
+        const b = box.getBoundingClientRect(), r = row.getBoundingClientRect();
+        const x = (e && e.clientX ? e.clientX : r.left + r.width / 2) - b.left + 12;
+        tip.style.left = `${Math.max(0, Math.min(x, box.clientWidth - tip.offsetWidth))}px`; tip.style.top = `${r.bottom - b.top + 4}px`;
+      };
+      row.addEventListener('pointermove', show); row.addEventListener('focus', show);
+      row.addEventListener('pointerleave', () => { tip.hidden = true; }); row.addEventListener('blur', () => { tip.hidden = true; });
+      box.append(row);
+    });
+    box.append(tip);
+  }
+
+  function renderMatrix() {
+    const t = $('#matrix'); const head = t.tHead; const body = t.tBodies[0];
+    head.replaceChildren(); body.replaceChildren();
+    if (!state.loaded) return;
+    const rows = state.records.filter((r) => inFilter(r, { noMonth: true, noType: true, noText: true }));
+    const ms = [...new Set(rows.map(ym).filter(Boolean))].sort();
+    const g = new Map();
+    rows.forEach((r) => { if (!g.has(r.type)) g.set(r.type, { type: r.type, total: 0, m: {} }); const o = g.get(r.type); const q = qty(r); o.total += q; o.m[ym(r)] = (o.m[ym(r)] || 0) + q; });
+    const data = [...g.values()].sort((a, b) => b.total - a.total);
+    const hr = el('tr'); hr.append(el('th', null, '유형')); ms.forEach((m) => hr.append(el('th', 'num', monthLabel(m)))); hr.append(el('th', 'num', '합계')); head.append(hr);
+    if (!data.length) { const tr = el('tr'); const td = el('td', 'empty', '기록이 없어요.'); td.colSpan = ms.length + 2; tr.append(td); body.append(tr); return; }
+    const max = Math.max(1, ...data.flatMap((o) => ms.map((m) => o.m[m] || 0)));
+    data.forEach((o) => {
+      const tr = el('tr'); tr.style.cursor = 'pointer';
+      if (state.f.type && state.f.type !== o.type) tr.style.opacity = '.4';
+      const c = el('td'); c.append(typePill(o.type)); tr.append(c);
+      ms.forEach((m) => { const v = o.m[m] || 0; const td = el('td', 'num', fmt(v)); if (v) td.style.background = `color-mix(in srgb, var(--accent) ${Math.round(v / max * 50)}%, transparent)`; else td.style.color = 'var(--muted)'; tr.append(td); });
+      const tot = el('td', 'num', fmt(o.total)); tot.style.fontWeight = '600'; tr.append(tot);
+      tr.addEventListener('click', () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); });
+      body.append(tr);
+    });
+  }
+
+  // 포토카드 번호를 앞부분(AA04_)과 뒷숫자(12345)로 나눠 그려요. 뒷숫자를 더블클릭하면 숫자만 선택돼요.
+  function codeCell(v) {
+    const td = el('td', 'code'); const s = v || '';
+    const m = s.match(/^(.*?_)(\d+)$/);
+    if (m) { td.append(el('span', null, m[1]), el('span', 'code-num', m[2])); td.dataset.copy = m[2]; }
+    else { td.textContent = s; if (s) td.dataset.copy = s; }
+    if (td.dataset.copy) td.title = `${td.dataset.copy} 복사`;
+    return td;
+  }
+  // 컬렉션·입고번호처럼 값 전체를 복사하는 칸
+  function copyCell(v) {
+    const td = el('td', 'code', v || '');
+    if (v) { td.dataset.copy = v; td.title = `${v} 복사`; }
+    return td;
+  }
+
+  let confirmId = null;
+  function renderRows() {
+    const tb = $('#rows'); tb.replaceChildren();
+    document.querySelectorAll('.edit-col').forEach((e) => { e.hidden = !state.canWrite; });
+    if (!state.loaded) { const tr = el('tr'); const td = el('td', 'empty', '불러오는 중이에요.'); td.colSpan = 13; tr.append(td); tb.append(tr); return; }
+    const rows = state.records.filter((r) => inFilter(r))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || '') || a.id.localeCompare(b.id));
+    $('#export').hidden = !rows.length;
+    const numbered = !!state.f.labeler;
+    document.querySelectorAll('th.no-col').forEach((e) => { e.hidden = !numbered; });
+    const rc = $('#rowcount'); rc.hidden = !numbered; rc.replaceChildren();
+    if (numbered) {
+      const sum = rows.reduce((a, r) => a + qty(r), 0);
+      const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
+      rc.append(`${state.f.labeler} 님의 ${period} 오류 `, el('b', null, `${fmt(sum)}건`));
+      if (sum !== rows.length) rc.append(` (기록 ${fmt(rows.length)}줄, 수량 합계 기준)`);
+    }
+    if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 13; tr.append(td); tb.append(tr); return; }
+    rows.forEach((r, i) => {
+      const tr = el('tr'); if (r.id === state.editingId) tr.className = 'is-editing'; if (r.id === state.flashId) tr.classList.add('flash');
+      if (numbered) tr.append(el('td', 'num no-col', String(i + 1)));
+      tr.append(el('td', 'code', r.date || ''), copyCell(r.collection), copyCell(r.inbound));
+      tr.append(codeCell(r.before), codeCell(r.after));
+      tr.append(el('td', null, r.product || ''), el('td', 'num', fmt(qty(r))));
+      const tt = el('td'); tt.append(typePill(r.type || '미기재')); tr.append(tt);
+      const ta = el('td'); ta.append(actPill(r.action || '미기재')); tr.append(ta);
+      const tl = el('td', null, r.labeler && r.labeler !== '미기재' ? r.labeler : '—'); if (!r.labeler || r.labeler === '미기재') tl.style.color = 'var(--muted)'; tr.append(tl);
+      tr.append(el('td', null, r.memo || ''));
+      const te = el('td'); te.hidden = !state.canWrite; te.style.whiteSpace = 'nowrap';
+      if (state.canWrite) {
+        const eb = el('button', 'linkbtn', '수정'); eb.type = 'button'; eb.addEventListener('click', () => startEdit(r));
+        const db = el('button', 'linkbtn danger', confirmId === r.id ? '정말 삭제' : '삭제'); db.type = 'button';
+        db.addEventListener('click', () => { if (confirmId === r.id) { confirmId = null; removeRecord(r); } else { confirmId = r.id; renderRows(); } });
+        te.append(eb, db);
+      }
+      tr.append(te);
+      tb.append(tr);
+    });
+    state.flashId = null;
+  }
+
+  // ---------- 입력 양식 ----------
+  function renderFormLists() {
+    const types = sortKo(state.lists.types.length ? state.lists.types : DEFAULT_LISTS.types);
+    if (state.form.type && !types.includes(state.form.type)) types.push(state.form.type);
+    const actions = (state.lists.actions || DEFAULT_LISTS.actions).filter((a) => a !== '환불');
+    if (!actions.includes(state.form.action)) state.form.action = actions[0] || '수정';
+    const box = $('#f-type'); box.replaceChildren();
+    types.forEach((t) => {
+      const b = el('button', 'chip'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(state.form.type === t));
+      b.style.setProperty('--c', typeColor(t)); const d = el('i', 'dot'); d.style.background = typeColor(t); b.append(d, el('span', null, t));
+      b.addEventListener('click', () => { state.form.type = t; renderFormLists(); });
+      box.append(b);
+    });
+    const seg = $('#f-action'); seg.replaceChildren();
+    actions.forEach((a) => {
+      const b = el('button', null, a); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(state.form.action === a));
+      b.style.setProperty('--c', actColor(a)); b.addEventListener('click', () => { state.form.action = a; renderFormLists(); });
+      seg.append(b);
+    });
+    const sel = $('#f-labeler'); const cur = sel.value;
+    const labs = [...state.lists.labelers];
+    if (cur && !labs.includes(cur)) labs.push(cur);
+    sel.replaceChildren(new Option('선택하세요', ''), ...labs.map((n) => new Option(n, n)));
+    sel.value = cur;
+    // 목록 관리
+    const ml = $('#m-labelers'); ml.replaceChildren(...state.lists.labelers.map((n) => tagEl(n, () => saveLists({ labelers: state.lists.labelers.filter((x) => x !== n) }))));
+    const mt = $('#m-types'); mt.replaceChildren(...sortKo(state.lists.types).map((n) => tagEl(n, () => saveLists({ types: state.lists.types.filter((x) => x !== n) }))));
+    document.querySelectorAll('#listmgr button, #listmgr input').forEach((e) => { e.disabled = !state.canWrite; });
+  }
+  function tagEl(name, onRemove) {
+    const t = el('span', 'tag', name); const b = el('button', null, '×'); b.type = 'button'; b.setAttribute('aria-label', `${name} 빼기`);
+    b.addEventListener('click', onRemove); t.append(b); return t;
+  }
+
+  const msg = (text, kind) => { const m = $('#msg'); m.textContent = text; m.className = 'msg' + (kind ? ' ' + kind : ''); };
+
+  function readForm() {
+    const v = (id) => $(id).value.trim();
+    return {
+      date: v('#f-date'), labeler: v('#f-labeler'), type: state.form.type, action: state.form.action,
+      product: v('#f-product'), before: v('#f-before'), after: v('#f-after'), memo: v('#f-memo'),
+      qty: Math.max(1, Math.min(999, parseInt($('#f-qty').value, 10) || 1)), collection: v('#f-collection'), inbound: v('#f-inbound'),
+    };
+  }
+
+  async function save() {
+    if (!state.db || !state.canWrite || state.saving) return;
+    const d = readForm();
+    const missing = [!d.date && '날짜', !d.labeler && '라벨팀', !d.type && '오류 유형', !d.action && '처리', !d.product && '포토카드명'].filter(Boolean);
+    if (missing.length) { msg(`${missing.join(', ')}을(를) 입력해 주세요.`, 'err'); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) { msg('날짜를 다시 확인해 주세요.', 'err'); return; }
+    state.saving = true; $('#save').disabled = true; msg('저장하는 중이에요.');
+    try {
+      if (state.editingId) {
+        const { error } = await state.db.from('records').update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', state.editingId);
+        if (error) throw error;
+        state.flashId = state.editingId; endEdit(); msg('수정했어요.', 'ok');
+      } else {
+        const { data, error } = await state.db.from('records').insert({ ...toRow(d), source: 'entry' }).select('id').single();
+        if (error) throw error;
+        state.flashId = data.id;
+        ['#f-before', '#f-after', '#f-memo'].forEach((s) => { $(s).value = ''; }); $('#f-qty').value = '1';
+        msg(`저장했어요. ${d.product} · ${d.type} ${d.qty}건`, 'ok');
+        if (state.f.month && state.f.month !== d.date.slice(0, 7)) { state.f.month = d.date.slice(0, 7); }
+      }
+    } catch (e) {
+      logErr('저장', e);
+      msg(`저장하지 못했어요. ${errText(e)}`, 'err');
+    } finally { state.saving = false; $('#save').disabled = false; }
+  }
+
+  function startEdit(r) {
+    state.editingId = r.id; confirmId = null;
+    $('#f-date').value = r.date || ''; state.form.type = r.type || ''; state.form.action = r.action || '수정';
+    const sel = $('#f-labeler'); if (r.labeler && r.labeler !== '미기재' && ![...sel.options].some((o) => o.value === r.labeler)) sel.append(new Option(r.labeler, r.labeler));
+    sel.value = r.labeler && r.labeler !== '미기재' ? r.labeler : '';
+    [['#f-product', 'product'], ['#f-before', 'before'], ['#f-after', 'after'], ['#f-memo', 'memo'], ['#f-collection', 'collection'], ['#f-inbound', 'inbound']].forEach(([s, k]) => { $(s).value = r[k] || ''; });
+    $('#f-qty').value = String(qty(r));
+    $('#entry').classList.add('editing'); $('#entry-title').textContent = '기록 수정'; $('#save').textContent = '수정 저장'; $('#cancel').hidden = false;
+    msg(''); renderFormLists(); renderRows();
+    $('#entry').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+  function endEdit() {
+    state.editingId = null;
+    $('#entry').classList.remove('editing'); $('#entry-title').textContent = '새 기록'; $('#save').textContent = '기록 저장'; $('#cancel').hidden = true;
+    ['#f-before', '#f-after', '#f-memo', '#f-collection', '#f-inbound'].forEach((s) => { $(s).value = ''; }); $('#f-qty').value = '1';
+    renderFormLists(); renderRows();
+  }
+  async function removeRecord(r) {
+    try { const { error } = await state.db.from('records').delete().eq('id', r.id); if (error) throw error; if (state.editingId === r.id) endEdit(); msg('삭제했어요.', 'ok'); }
+    catch (e) { logErr('삭제', e); msg(`삭제하지 못했어요. ${errText(e)}`, 'err'); renderRows(); }
+  }
+  async function saveLists(patch) {
+    if (!state.db || !state.canWrite) return;
+    const next = { ...state.lists, ...patch };
+    try { const { error } = await state.db.from('lists').upsert({ id: 'main', ...next }); if (error) throw error; } catch (e) { logErr('목록 저장', e); msg(`목록을 저장하지 못했어요. ${errText(e)}`, 'err'); }
+  }
+  function addTo(key, input) {
+    const v = $(input).value.trim(); if (!v) return;
+    if (!state.lists[key].includes(v)) saveLists({ [key]: [...state.lists[key], v] });
+    $(input).value = '';
+  }
+
+  // ---------- 이벤트 ----------
+  let toastTimer = null;
+  function toast(text) {
+    let t = document.getElementById('toast');
+    if (!t) { t = el('div', 'toast'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); }
+    t.textContent = text; t.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 1400);
+  }
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch (_) {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.append(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch (__) { ok = false; }
+      ta.remove(); return ok;
+    }
+  }
+  $('#rows').addEventListener('click', async (e) => {
+    const td = e.target.closest && e.target.closest('[data-copy]');
+    if (!td) return;
+    if (String(window.getSelection()).trim()) return; // 드래그로 직접 선택한 경우는 그대로 둬요
+    const ok = await copyText(td.dataset.copy);
+    if (ok) {
+      toast(`${td.dataset.copy} 복사했어요`);
+      td.classList.add('copied'); setTimeout(() => td.classList.remove('copied'), 600);
+    } else toast('복사하지 못했어요. 드래그해서 복사해 주세요.');
+  });
+  $('#rows').addEventListener('dblclick', (e) => {
+    const n = e.target.closest && e.target.closest('.code-num');
+    if (!n) return;
+    const range = document.createRange(); range.selectNodeContents(n);
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+  });
+  $('#save').addEventListener('click', save);
+  $('#cancel').addEventListener('click', () => { endEdit(); msg(''); });
+  $('#q-month').addEventListener('change', (e) => { state.f.month = e.target.value; renderAll(); });
+  $('#q-type').addEventListener('change', (e) => { state.f.type = e.target.value; renderAll(); });
+  $('#q-labeler').addEventListener('change', (e) => { state.f.labeler = e.target.value; renderAll(); });
+  let tmr; $('#q-text').addEventListener('input', (e) => { clearTimeout(tmr); tmr = setTimeout(() => { state.f.text = e.target.value.trim(); renderFilters(); renderRows(); }, 200); });
+  $('#q-clear').addEventListener('click', () => { state.f.type = ''; state.f.labeler = ''; state.f.text = ''; $('#q-text').value = ''; renderAll(); });
+  $('#m-labeler-add').addEventListener('click', () => addTo('labelers', '#m-labeler-in'));
+  $('#m-type-add').addEventListener('click', () => addTo('types', '#m-type-in'));
+  $('#m-labeler-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTo('labelers', '#m-labeler-in'); });
+  $('#m-type-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTo('types', '#m-type-in'); });
+  $('#export').addEventListener('click', async () => {
+    const rows = state.records.filter((r) => inFilter(r)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    const cols = [['date', '날짜'], ['type', '사유'], ['product', '포토카드명'], ['before', '수정 전'], ['after', '수정 후'], ['qty', '수량'], ['action', '처리'], ['labeler', '라벨팀'], ['collection', '컬렉션'], ['inbound', '입고번호'], ['memo', '메모']];
+    const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const csv = '\ufeff' + [cols.map((c) => c[1]).join(','), ...rows.map((r) => cols.map(([k]) => esc(k === 'qty' ? qty(r) : r[k])).join(','))].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `라벨오류_${state.f.month || '전체'}.csv`; document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  });
+
+  function applyWrite() {
+    $('#form').hidden = !state.canWrite; $('#readonly').hidden = state.canWrite;
+    $('#entry-hint').hidden = !state.canWrite;
+    renderFormLists(); renderRows();
+  }
+
+  renderFormLists(); renderAll();
+
+  // ---------- 연결 (Supabase) ----------
+  const toRow = (d) => ({
+    date: d.date, type: d.type, action: d.action, labeler: d.labeler, product: d.product,
+    before_no: d.before, after_no: d.after, memo: d.memo, qty: d.qty, collection: d.collection, inbound: d.inbound,
+  });
+  const fromRow = (r) => ({
+    id: r.id, date: r.date, type: r.type, action: r.action, labeler: r.labeler, product: r.product,
+    before: r.before_no, after: r.after_no, memo: r.memo, qty: r.qty, collection: r.collection, inbound: r.inbound,
+    source: r.source, createdAt: r.created_at,
+  });
+
+  async function loadRecords() {
+    const all = []; const page = 1000;
+    for (let from = 0; ; from += page) {
+      const { data, error } = await state.db.from('records').select('*').order('date').order('created_at').range(from, from + page - 1);
+      if (error) throw error;
+      all.push(...data);
+      if (data.length < page) break;
+    }
+    state.records = all.map(fromRow);
+    state.loaded = true;
+    $('#status').textContent = `전체 ${fmt(state.records.reduce((a, r) => a + qty(r), 0))}건, 실시간으로 반영돼요`;
+    renderAll();
+  }
+  async function loadLists() {
+    const { data, error } = await state.db.from('lists').select('*').eq('id', 'main').maybeSingle();
+    if (error) throw error;
+    state.lists = {
+      types: Array.isArray(data && data.types) ? [...data.types] : [...DEFAULT_LISTS.types],
+      labelers: Array.isArray(data && data.labelers) ? [...data.labelers] : [],
+      actions: Array.isArray(data && data.actions) && data.actions.length ? [...data.actions] : [...DEFAULT_LISTS.actions],
+    };
+    renderFormLists(); renderFilters();
+  }
+
+  let reloadTimer = null;
+  const scheduleReload = () => { clearTimeout(reloadTimer); reloadTimer = setTimeout(() => loadRecords().catch((e) => logErr('기록 다시 불러오기', e)), 300); };
+  let channel = null;
+  let realtimeWarned = false;
+
+  async function startApp() {
+    state.canWrite = true; applyWrite();
+    try { await Promise.all([loadLists(), loadRecords()]); }
+    catch (e) {
+      logErr('처음 불러오기', e);
+      $('#status').textContent = `기록을 불러오지 못했어요: ${errText(e)}`;
+      $('#summary').textContent = '기록을 불러오지 못했어요. 오른쪽 위 안내 문구를 확인해 주세요.';
+    }
+    channel = state.db.channel('label-log')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, scheduleReload)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lists' }, () => loadLists().catch((e) => logErr('목록 다시 불러오기', e)))
+      .subscribe((status, err) => {
+        // 실시간 연결이 안 돼도 기록·저장은 그대로 돼요. 이유만 한 번 남겨 둬요.
+        if ((status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') && !realtimeWarned) { realtimeWarned = true; logErr(`실시간 연결(${status})`, err); }
+      });
+    // 로그인 없는 실시간 연결은 하루 단위로 끊길 수 있어서, 탭으로 돌아올 때마다 최신 기록을 다시 불러와요.
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') scheduleReload(); });
+  }
+
+  const cfg = window.LABEL_LOG_CONFIG || {};
+  if (!window.supabase || !cfg.SUPABASE_URL || cfg.SUPABASE_URL.includes('YOUR-PROJECT') || !cfg.SUPABASE_KEY || cfg.SUPABASE_KEY.includes('YOUR-KEY')) {
+    $('#summary').textContent = 'index.html 위쪽의 SUPABASE_URL과 SUPABASE_KEY를 먼저 채워 주세요.';
+    state.canWrite = false; applyWrite();
+  } else {
+    state.db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY);
+    startApp();
+  }
+})();
+</script>
+</body>
+</html>
