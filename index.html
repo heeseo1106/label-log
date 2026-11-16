@@ -34,7 +34,7 @@
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif; font-size: 15px; line-height: 1.55; }
 button, input, select { font: inherit; color: inherit; }
-.wrap { max-width: 1240px; margin: 0 auto; padding: 28px 20px 48px; }
+.wrap { max-width: 1480px; margin: 0 auto; padding: 28px 20px 48px; }
 header.top > div:first-child { flex: 1 1 auto; min-width: 0; }
 header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 22px; }
 h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
@@ -78,6 +78,18 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .msg { font-size: 13px; min-height: 20px; margin-top: 10px; }
 .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
 .readonly-note { font-size: 13px; color: var(--muted); background: var(--field); border-radius: 8px; padding: 10px 12px; }
+
+/* 탭 */
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 18px; }
+.tab { border: 0; background: transparent; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--muted); min-height: 38px; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.side { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.side .records { margin-top: 0; }
+.kpi-wide { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 16px 20px; }
+.kpi-wide .v { margin-top: 0; }
+.dash-filters { margin: 0 0 16px; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px; align-items: start; }
 
 /* 현황 */
 .stats { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
@@ -156,10 +168,16 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   <div id="app">
 
+  <nav class="tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-record" data-view="record" aria-controls="view-record" aria-selected="true">기록</button>
+    <button class="tab" role="tab" id="tab-dashboard" data-view="dashboard" aria-controls="view-dashboard" aria-selected="false">대시보드</button>
+  </nav>
+
+  <section class="view" id="view-record" role="tabpanel" aria-labelledby="tab-record">
   <div class="layout">
     <section class="panel slip" id="entry" aria-labelledby="entry-title">
       <h2 id="entry-title">새 기록</h2>
-      <p class="hint" id="entry-hint">수정한 포토카드를 바로 기록하세요. 같은 카드를 여러 장 고쳤다면 수량에 장수를 넣으면 돼요.</p>
+      <p class="hint" id="entry-hint">수정한 포토카드를 바로 기록하세요.</p>
       <div id="readonly" class="readonly-note" hidden>데이터베이스에 연결되지 않아 지금은 기록할 수 없어요.</div>
       <div id="form">
         <div class="row2">
@@ -189,46 +207,31 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       </div>
     </section>
 
-    <div class="stats">
-      <div class="kpis">
-        <div class="panel kpi"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
-        <div class="panel kpi"><div class="k">최다 유형</div><div class="v word" id="k-top">—</div><div class="s" id="k-top-s">&nbsp;</div></div>
+    <div class="side">
+      <div class="panel kpi kpi-wide"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
+    <section class="panel records" id="records" aria-labelledby="rec-title">
+      <h2 id="rec-title">상세 내역</h2>
+      <div class="filters">
+        <select class="in" id="q-month" aria-label="월"></select>
+        <select class="in" id="q-type" aria-label="유형"></select>
+        <select class="in" id="q-labeler" aria-label="라벨팀"></select>
+        <input class="in search" id="q-text" type="search" placeholder="포토카드명이나 번호로 찾기" aria-label="포토카드명이나 번호로 찾기">
+        <button class="btn ghost" id="q-clear" type="button" hidden>필터 지우기</button>
+        <button class="btn ghost" id="export" type="button" hidden>CSV로 내려받기</button>
       </div>
-      <section class="panel" aria-labelledby="bars-title">
-        <h2 id="bars-title">유형별 건수</h2>
-        <p class="hint">막대를 누르면 그 유형의 내역만 볼 수 있어요.</p>
-        <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
-        <div class="bars" id="bars"></div>
-      </section>
-      <section class="panel" aria-labelledby="matrix-title">
-        <h2 id="matrix-title">월별 유형 추이</h2>
-        <p class="hint">월·유형 필터와 상관없이 전체 기간을 보여줘요. 라벨팀 필터는 적용돼요.</p>
-        <div class="scroll"><table id="matrix" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody></table></div>
-      </section>
+      <p class="rowcount" id="rowcount" hidden></p>
+      <div class="tablebox">
+        <table aria-label="수정 상세 내역">
+          <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th class="num">수량</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+    </section>
     </div>
   </div>
 
-  <section class="panel records" aria-labelledby="rec-title">
-    <h2 id="rec-title">상세 내역</h2>
-    <div class="filters">
-      <select class="in" id="q-month" aria-label="월"></select>
-      <select class="in" id="q-type" aria-label="유형"></select>
-      <select class="in" id="q-labeler" aria-label="라벨팀"></select>
-      <input class="in search" id="q-text" type="search" placeholder="포토카드명이나 번호로 찾기" aria-label="포토카드명이나 번호로 찾기">
-      <button class="btn ghost" id="q-clear" type="button" hidden>필터 지우기</button>
-      <button class="btn ghost" id="export" type="button" hidden>CSV로 내려받기</button>
-    </div>
-    <p class="rowcount" id="rowcount" hidden></p>
-    <div class="tablebox">
-      <table aria-label="수정 상세 내역">
-        <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th class="num">수량</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-  </section>
-
   <details class="panel listmgr" id="listmgr">
-    <summary>유형·라벨팀 목록 관리</summary>
+    <summary>라벨팀·유형 목록 관리</summary>
     <div class="mgr">
       <div><div class="lab" style="font-size:13px;color:var(--muted);margin-bottom:8px">라벨팀</div><div class="tags" id="m-labelers"></div>
         <div class="addrow"><input class="in" id="m-labeler-in" placeholder="이름 추가"><button class="btn" id="m-labeler-add" type="button">추가</button></div></div>
@@ -237,6 +240,27 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     </div>
     <p class="hint" style="margin-top:12px">목록에서 빼도 이미 저장된 기록은 그대로 남아요.</p>
   </details>
+  </section>
+
+  <section class="view" id="view-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" hidden>
+    <div class="filters dash-filters">
+      <select class="in" id="d-month" aria-label="월"></select>
+      <select class="in" id="d-labeler" aria-label="라벨팀"></select>
+    </div>
+    <div class="dash-grid">
+      <section class="panel" aria-labelledby="bars-title">
+        <h2 id="bars-title">유형별 건수</h2>
+        <p class="hint">막대를 누르면 기록 탭의 상세 내역에서 그 유형만 볼 수 있어요.</p>
+        <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
+        <div class="bars" id="bars"></div>
+      </section>
+      <section class="panel" aria-labelledby="matrix-title">
+        <h2 id="matrix-title">월별 유형 추이</h2>
+        <p class="hint">월 선택과 상관없이 전체 기간을 보여줘요. 라벨팀 선택은 적용돼요.</p>
+        <div class="scroll"><table id="matrix" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody></table></div>
+      </section>
+    </div>
+  </section>
   </div>
 </div>
 
@@ -324,6 +348,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     const mSel = $('#q-month');
     mSel.replaceChildren(new Option('전체 기간', ''), ...ms.map((m) => new Option(monthLabel(m), m)));
     mSel.value = state.f.month;
+    const dm = $('#d-month'); dm.replaceChildren(...[...mSel.options].map((o) => new Option(o.text, o.value))); dm.value = state.f.month;
     const types = sortKo(new Set([...state.lists.types, ...state.records.map((r) => r.type)].filter(Boolean)));
     const tSel = $('#q-type');
     tSel.replaceChildren(new Option('전체 유형', ''), ...types.map((t) => new Option(t, t)));
@@ -333,6 +358,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     const lSel = $('#q-labeler');
     lSel.replaceChildren(new Option('전체 라벨팀', ''), ...labs.map((t) => new Option(t, t)));
     lSel.value = state.f.labeler;
+    const dl = $('#d-labeler'); dl.replaceChildren(...[...lSel.options].map((o) => new Option(o.text, o.value))); dl.value = state.f.labeler;
     $('#q-clear').hidden = !(state.f.type || state.f.labeler || state.f.text);
   }
 
@@ -355,8 +381,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     $('#k-total').textContent = fmt(total);
     const dates = rows.map((r) => r.date).filter(Boolean).sort();
     $('#k-total-s').textContent = dates.length ? `${dayLabel(dates[0])}~${dayLabel(dates[dates.length - 1])}` : ' ';
-    $('#k-top').textContent = top ? top[0] : '—';
-    $('#k-top-s').textContent = top ? `${fmt(top[1])}건 · 전체의 ${(top[1] / total * 100).toFixed(1)}%` : ' ';
+
   }
 
   function renderBars() {
@@ -382,7 +407,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       [[o.fix, 'var(--fix)'], [o.buy, 'var(--buy)'], [o.etc, '#A0A4AB']].forEach(([n, c]) => { if (!n) return; const s = el('span'); s.style.width = `${n / max * 100}%`; s.style.background = c; tr.append(s); });
       const n = el('div', 'n'); n.append(el('b', null, fmt(o.n))); if (o.buy) n.append(el('em', null, ` · 구매 ${fmt(o.buy)}`));
       row.append(lb, tr, n);
-      const pick = () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); };
+      const pick = () => { state.f.type = o.type; renderAll(); showView('record', true); };
       row.addEventListener('click', pick);
       row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
       const show = (e) => {
@@ -417,7 +442,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       const c = el('td'); c.append(typePill(o.type)); tr.append(c);
       ms.forEach((m) => { const v = o.m[m] || 0; const td = el('td', 'num', fmt(v)); if (v) td.style.background = `color-mix(in srgb, var(--accent) ${Math.round(v / max * 50)}%, transparent)`; else td.style.color = 'var(--muted)'; tr.append(td); });
       const tot = el('td', 'num', fmt(o.total)); tot.style.fontWeight = '600'; tr.append(tot);
-      tr.addEventListener('click', () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); });
+      tr.addEventListener('click', () => { state.f.type = o.type; renderAll(); showView('record', true); });
       body.append(tr);
     });
   }
@@ -581,6 +606,20 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     if (!state.lists[key].includes(v)) saveLists({ [key]: [...state.lists[key], v] });
     $(input).value = '';
   }
+
+  // ---------- 탭 (기록 / 대시보드) ----------
+  function showView(view, toRecords) {
+    if (view !== 'record' && view !== 'dashboard') view = 'record';
+    document.querySelectorAll('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.view === view)));
+    $('#view-record').hidden = view !== 'record'; $('#view-dashboard').hidden = view !== 'dashboard';
+    if (location.hash !== '#' + view) history.replaceState(null, '', '#' + view);
+    if (toRecords) $('#records').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+  document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
+  window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
+  showView(location.hash.slice(1) || 'record');
+  $('#d-month').addEventListener('change', (e) => { state.f.month = e.target.value; renderAll(); });
+  $('#d-labeler').addEventListener('change', (e) => { state.f.labeler = e.target.value; renderAll(); });
 
   // ---------- 이벤트 ----------
   let toastTimer = null;
