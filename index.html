@@ -82,8 +82,9 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 
 /* 로그인 */
 .pwbox { max-width: 520px; margin: 0 0 18px; }
-.login { max-width: 560px; margin: 24px auto; }
+.login { width: fit-content; max-width: 100%; margin: 24px auto; }
 .login .hint { word-break: keep-all; }
+@media (min-width: 560px) { .login .hint { white-space: nowrap; } }
 .login .btn { width: 100%; }
 .inlink { color: var(--accent); }
 #who { margin-left: 8px; }
