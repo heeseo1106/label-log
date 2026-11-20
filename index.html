@@ -79,6 +79,12 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .msg.ok { color: var(--ok); } .msg.err { color: var(--bad); }
 .readonly-note { font-size: 13px; color: var(--muted); background: var(--field); border-radius: 8px; padding: 10px 12px; }
 
+/* 로그인 */
+.pwbox { max-width: 520px; margin: 0 0 18px; }
+.login { max-width: 420px; margin: 24px auto; }
+.inlink { color: var(--accent); }
+#who { margin-left: 8px; }
+
 /* 탭 */
 .tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 18px; }
 .tab { border: 0; background: transparent; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--muted); min-height: 38px; }
@@ -89,7 +95,36 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .kpi-wide { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 16px 20px; }
 .kpi-wide .v { margin-top: 0; }
 .dash-filters { margin: 0 0 16px; }
-.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px; align-items: start; }
+.dash-records { margin-top: 20px; scroll-margin-top: 16px; }
+.rowcount .chip-inline { margin-left: 6px; vertical-align: 1px; }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px; align-items: stretch; }
+.dash-grid > .panel { display: flex; flex-direction: column; min-height: 100%; }
+
+/* 입력 시트 */
+.entry { border-top: 4px solid var(--accent); margin-bottom: 20px; }
+.entry-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 10px 20px; margin-bottom: 12px; }
+.entry-head .hint { margin: 0; }
+.gridbox { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+.grid { border-collapse: separate; border-spacing: 0; min-width: 1180px; font-size: 13.5px; }
+.grid th { position: sticky; top: 0; background: var(--field); padding: 7px 8px; font-size: 12.5px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+.grid td { padding: 0; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); vertical-align: middle; }
+.grid th:last-child, .grid td:last-child { border-right: 0; }
+.grid tr:last-child td { border-bottom: 0; }
+.grid .g-no { width: 34px; text-align: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.grid .g-date { width: 112px; } .grid .g-wide { min-width: 230px; } .grid .g-memo { min-width: 130px; } .grid .g-x { width: 34px; }
+.grid input, .grid select { width: 100%; border: 0; background: transparent; padding: 8px; min-height: 36px; font: inherit; color: inherit; border-radius: 0; }
+.grid input.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+.grid input:focus, .grid select:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--surface); }
+.grid input::placeholder { color: var(--muted); opacity: .55; }
+.grid tr.has-err td { background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.grid tr.is-edit td { background: color-mix(in srgb, var(--edit) 14%, transparent); }
+.grid td.bad select, .grid td.bad input { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--bad) 70%, transparent); }
+.grid .rowerr { display: block; padding: 0 8px 6px; font-size: 12px; color: var(--bad); }
+.grid .xbtn { border: 0; background: none; color: var(--muted); cursor: pointer; width: 100%; min-height: 36px; font-size: 16px; }
+.grid .xbtn:hover { color: var(--bad); }
+.req-dot { color: var(--bad); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.kpi-wide { margin-bottom: 20px; }
 
 /* 현황 */
 .stats { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
@@ -163,52 +198,64 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       <h1>POCA Label Log</h1>
       <p class="summary" id="summary">기록을 불러오는 중이에요.</p>
     </div>
-    <div class="status"><span id="status"></span></div>
+    <div class="status"><span id="status"></span><span id="who" hidden></span> <button class="linkbtn" id="pw-open" type="button" hidden>비밀번호 바꾸기</button> <button class="linkbtn" id="logout" type="button" hidden>로그아웃</button></div>
   </header>
 
   <div id="app">
 
+  <section class="panel pwbox" id="pw-panel" hidden aria-labelledby="pw-title">
+    <h2 id="pw-title">비밀번호 바꾸기</h2>
+    <p class="hint">처음 받은 임시 비밀번호를 내 비밀번호로 바꿔 주세요. 8자 이상이면 돼요.</p>
+    <div class="row2">
+      <div class="field"><label for="pw-new">새 비밀번호</label><input class="in" type="password" id="pw-new" autocomplete="new-password"></div>
+      <div class="field"><label for="pw-new2">한 번 더</label><input class="in" type="password" id="pw-new2" autocomplete="new-password"></div>
+    </div>
+    <div class="actions"><button class="btn" id="pw-save" type="button">바꾸기</button><button class="btn ghost" id="pw-cancel" type="button">닫기</button></div>
+    <div class="msg" id="pw-msg" role="status" aria-live="polite"></div>
+  </section>
+
   <nav class="tabs" role="tablist" aria-label="화면 선택">
-    <button class="tab" role="tab" id="tab-record" data-view="record" aria-controls="view-record" aria-selected="true">기록</button>
+    <button class="tab" role="tab" id="tab-record" data-view="record" aria-controls="view-record" aria-selected="true">기록<span id="tab-lock" aria-hidden="true"> 🔒</span></button>
     <button class="tab" role="tab" id="tab-dashboard" data-view="dashboard" aria-controls="view-dashboard" aria-selected="false">대시보드</button>
   </nav>
 
   <section class="view" id="view-record" role="tabpanel" aria-labelledby="tab-record">
-  <div class="layout">
-    <section class="panel slip" id="entry" aria-labelledby="entry-title">
-      <h2 id="entry-title">새 기록</h2>
-      <p class="hint" id="entry-hint">수정한 포토카드를 바로 기록하세요.</p>
-      <div id="readonly" class="readonly-note" hidden>데이터베이스에 연결되지 않아 지금은 기록할 수 없어요.</div>
-      <div id="form">
-        <div class="row2">
-          <div class="field"><label class="req" for="f-date">날짜</label><input class="in" type="date" id="f-date"></div>
-          <div class="field"><label class="req" for="f-labeler">라벨팀</label><select class="in" id="f-labeler"></select></div>
+    <section class="panel login" id="login" hidden aria-labelledby="login-title">
+      <h2 id="login-title">기록하려면 로그인해 주세요</h2>
+      <p class="hint">기록 탭은 지정된 사람만 쓸 수 있어요. 현황은 로그인 없이 <a href="#dashboard" class="inlink">대시보드</a>에서 볼 수 있어요.</p>
+      <div class="field"><label for="l-email">이메일</label><input class="in" type="email" id="l-email" autocomplete="username"></div>
+      <div class="field"><label for="l-pass">비밀번호</label><input class="in" type="password" id="l-pass" autocomplete="current-password"></div>
+      <button class="btn" id="l-go" type="button">로그인</button>
+      <div class="msg" id="l-msg" role="status" aria-live="polite"></div>
+    </section>
+    <div id="record-body" hidden>
+    <section class="panel entry" id="entry" aria-labelledby="entry-title">
+      <div class="entry-head">
+        <div>
+          <h2 id="entry-title">새 기록</h2>
+          <p class="hint" id="entry-hint">시트처럼 한 줄에 하나씩 적고 저장하세요. 날짜를 비우면 윗줄 날짜를 따라가고, 시트에서 여러 줄을 복사해 붙여넣어도 돼요.</p>
         </div>
-        <div class="field"><span class="lab req" id="lab-type">오류 유형</span><div class="chips" id="f-type" role="radiogroup" aria-labelledby="lab-type"></div></div>
-        <div class="row2">
-          <div class="field"><label for="f-collection">컬렉션</label><input class="in" id="f-collection" inputmode="numeric" autocomplete="off"></div>
-          <div class="field"><label for="f-inbound">입고번호</label><input class="in" id="f-inbound" inputmode="numeric" autocomplete="off"></div>
+        <div class="actions" id="entry-actions">
+          <button class="btn ghost" id="add-rows" type="button">줄 추가</button>
+          <button class="btn ghost" id="clear-rows" type="button">입력 비우기</button>
+          <button class="btn" id="save" type="button">저장</button>
         </div>
-        <div class="row2">
-          <div class="field"><label for="f-before">수정 전</label><input class="in" id="f-before" autocomplete="off"></div>
-          <div class="field"><label for="f-after">수정 후</label><input class="in" id="f-after" autocomplete="off"></div>
-        </div>
-        <div class="field"><label class="req" for="f-product">포토카드명</label><input class="in" id="f-product" autocomplete="off"></div>
-        <div class="row-qty">
-          <div class="field"><label for="f-memo">메모</label><input class="in" id="f-memo" autocomplete="off"></div>
-          <div class="field"><label for="f-qty">수량</label><input class="in" type="number" min="1" max="999" step="1" id="f-qty" value="1"></div>
-        </div>
-        <div class="field"><span class="lab req" id="lab-action">처리</span><div class="seg" id="f-action" role="radiogroup" aria-labelledby="lab-action"></div></div>
-        <div class="actions">
-          <button class="btn" id="save" type="button">기록 저장</button>
-          <button class="btn ghost" id="cancel" type="button" hidden>수정 취소</button>
-        </div>
-        <div class="msg" id="msg" role="status" aria-live="polite"></div>
       </div>
+      <div id="readonly" class="readonly-note" hidden>데이터베이스에 연결되지 않아 지금은 기록할 수 없어요.</div>
+      <div id="form" class="gridbox">
+        <table class="grid" aria-label="새 기록 입력">
+          <thead><tr>
+            <th class="g-no">#</th><th class="g-date">날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th>
+            <th class="g-wide">포토카드명 <span class="req-dot">*</span></th><th>사유 <span class="req-dot">*</span></th><th>라벨팀 <span class="req-dot">*</span></th>
+            <th class="g-memo">메모</th><th>처리 <span class="req-dot">*</span></th><th class="g-x"><span class="sr-only">줄 지우기</span></th>
+          </tr></thead>
+          <tbody id="grid-body"></tbody>
+        </table>
+      </div>
+      <div class="msg" id="msg" role="status" aria-live="polite"></div>
     </section>
 
-    <div class="side">
-      <div class="panel kpi kpi-wide"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
+    <div class="panel kpi kpi-wide"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
     <section class="panel records" id="records" aria-labelledby="rec-title">
       <h2 id="rec-title">상세 내역</h2>
       <div class="filters">
@@ -222,13 +269,11 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       <p class="rowcount" id="rowcount" hidden></p>
       <div class="tablebox">
         <table aria-label="수정 상세 내역">
-          <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th class="num">수량</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
+          <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
     </section>
-    </div>
-  </div>
 
   <details class="panel listmgr" id="listmgr">
     <summary>라벨팀·유형 목록 관리</summary>
@@ -240,17 +285,20 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     </div>
     <p class="hint" style="margin-top:12px">목록에서 빼도 이미 저장된 기록은 그대로 남아요.</p>
   </details>
+    </div>
   </section>
 
   <section class="view" id="view-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" hidden>
     <div class="filters dash-filters">
       <select class="in" id="d-month" aria-label="월"></select>
       <select class="in" id="d-labeler" aria-label="라벨팀"></select>
+      <select class="in" id="d-type" aria-label="유형"></select>
+      <button class="btn ghost" id="d-clear" type="button" hidden>필터 지우기</button>
     </div>
     <div class="dash-grid">
       <section class="panel" aria-labelledby="bars-title">
         <h2 id="bars-title">유형별 건수</h2>
-        <p class="hint">막대를 누르면 기록 탭의 상세 내역에서 그 유형만 볼 수 있어요.</p>
+        <p class="hint">막대를 누르면 아래 상세 내역에서 그 유형만 볼 수 있어요. 한 번 더 누르면 전체로 돌아가요.</p>
         <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
         <div class="bars" id="bars"></div>
       </section>
@@ -260,6 +308,17 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
         <div class="scroll"><table id="matrix" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody></table></div>
       </section>
     </div>
+
+    <section class="panel records dash-records" id="d-records" aria-labelledby="d-rec-title">
+      <h2 id="d-rec-title">상세 내역</h2>
+      <p class="rowcount" id="d-rowcount"></p>
+      <div class="tablebox">
+        <table aria-label="대시보드 상세 내역">
+          <thead><tr><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th></tr></thead>
+          <tbody id="d-rows"></tbody>
+        </table>
+      </div>
+    </section>
   </section>
   </div>
 </div>
@@ -319,7 +378,6 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   };
 
   $('#lg-fix').style.background = 'var(--fix)'; $('#lg-buy').style.background = 'var(--buy)'; $('#lg-etc').style.background = '#A0A4AB';
-  $('#f-date').value = today();
 
   // ---------- 데이터 ----------
   const qty = (r) => Math.max(1, Number(r.qty) || 1);
@@ -339,7 +397,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   // ---------- 그리기 ----------
   function renderAll() {
-    renderFilters(); renderSummary(); renderBars(); renderMatrix(); renderRows();
+    renderFilters(); renderSummary(); renderBars(); renderMatrix(); renderRows(); renderDashRows();
   }
 
   function renderFilters() {
@@ -359,6 +417,8 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     lSel.replaceChildren(new Option('전체 라벨팀', ''), ...labs.map((t) => new Option(t, t)));
     lSel.value = state.f.labeler;
     const dl = $('#d-labeler'); dl.replaceChildren(...[...lSel.options].map((o) => new Option(o.text, o.value))); dl.value = state.f.labeler;
+    const dt = $('#d-type'); dt.replaceChildren(...[...tSel.options].map((o) => new Option(o.text, o.value))); dt.value = state.f.type;
+    $('#d-clear').hidden = !(state.f.type || state.f.labeler);
     $('#q-clear').hidden = !(state.f.type || state.f.labeler || state.f.text);
   }
 
@@ -407,7 +467,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       [[o.fix, 'var(--fix)'], [o.buy, 'var(--buy)'], [o.etc, '#A0A4AB']].forEach(([n, c]) => { if (!n) return; const s = el('span'); s.style.width = `${n / max * 100}%`; s.style.background = c; tr.append(s); });
       const n = el('div', 'n'); n.append(el('b', null, fmt(o.n))); if (o.buy) n.append(el('em', null, ` · 구매 ${fmt(o.buy)}`));
       row.append(lb, tr, n);
-      const pick = () => { state.f.type = o.type; renderAll(); showView('record', true); };
+      const pick = () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); scrollToDash(); };
       row.addEventListener('click', pick);
       row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
       const show = (e) => {
@@ -442,7 +502,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       const c = el('td'); c.append(typePill(o.type)); tr.append(c);
       ms.forEach((m) => { const v = o.m[m] || 0; const td = el('td', 'num', fmt(v)); if (v) td.style.background = `color-mix(in srgb, var(--accent) ${Math.round(v / max * 50)}%, transparent)`; else td.style.color = 'var(--muted)'; tr.append(td); });
       const tot = el('td', 'num', fmt(o.total)); tot.style.fontWeight = '600'; tr.append(tot);
-      tr.addEventListener('click', () => { state.f.type = o.type; renderAll(); showView('record', true); });
+      tr.addEventListener('click', () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); scrollToDash(); });
       body.append(tr);
     });
   }
@@ -467,7 +527,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   function renderRows() {
     const tb = $('#rows'); tb.replaceChildren();
     document.querySelectorAll('.edit-col').forEach((e) => { e.hidden = !state.canWrite; });
-    if (!state.loaded) { const tr = el('tr'); const td = el('td', 'empty', '불러오는 중이에요.'); td.colSpan = 13; tr.append(td); tb.append(tr); return; }
+    if (!state.loaded) { const tr = el('tr'); const td = el('td', 'empty', '불러오는 중이에요.'); td.colSpan = 12; tr.append(td); tb.append(tr); return; }
     const rows = state.records.filter((r) => inFilter(r))
       .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || '') || a.id.localeCompare(b.id));
     $('#export').hidden = !rows.length;
@@ -475,18 +535,16 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     document.querySelectorAll('th.no-col').forEach((e) => { e.hidden = !numbered; });
     const rc = $('#rowcount'); rc.hidden = !numbered; rc.replaceChildren();
     if (numbered) {
-      const sum = rows.reduce((a, r) => a + qty(r), 0);
       const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
-      rc.append(`${state.f.labeler} 님의 ${period} 오류 `, el('b', null, `${fmt(sum)}건`));
-      if (sum !== rows.length) rc.append(` (기록 ${fmt(rows.length)}줄, 수량 합계 기준)`);
+      rc.append(`${state.f.labeler} 님의 ${period} 오류 `, el('b', null, `${fmt(rows.length)}건`));
     }
-    if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 13; tr.append(td); tb.append(tr); return; }
+    if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 12; tr.append(td); tb.append(tr); return; }
     rows.forEach((r, i) => {
-      const tr = el('tr'); if (r.id === state.editingId) tr.className = 'is-editing'; if (r.id === state.flashId) tr.classList.add('flash');
+      const tr = el('tr'); if (entry.rows.some((x) => x.editingId === r.id)) tr.className = 'is-editing'; if (r.id === state.flashId) tr.classList.add('flash');
       if (numbered) tr.append(el('td', 'num no-col', String(i + 1)));
       tr.append(el('td', 'code', r.date || ''), copyCell(r.collection), copyCell(r.inbound));
       tr.append(codeCell(r.before), codeCell(r.after));
-      tr.append(el('td', null, r.product || ''), el('td', 'num', fmt(qty(r))));
+      tr.append(el('td', null, r.product || ''));
       const tt = el('td'); tt.append(typePill(r.type || '미기재')); tr.append(tt);
       const ta = el('td'); ta.append(actPill(r.action || '미기재')); tr.append(ta);
       const tl = el('td', null, r.labeler && r.labeler !== '미기재' ? r.labeler : '—'); if (!r.labeler || r.labeler === '미기재') tl.style.color = 'var(--muted)'; tr.append(tl);
@@ -504,30 +562,192 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     state.flashId = null;
   }
 
-  // ---------- 입력 양식 ----------
+  // ---------- 대시보드 상세 내역 (보기 전용) ----------
+  function scrollToDash() {
+    const t = $('#d-records'); if (!t || $('#view-dashboard').hidden) return;
+    t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  }
+  function renderDashRows() {
+    const tb = $('#d-rows'); if (!tb) return; tb.replaceChildren();
+    const rc = $('#d-rowcount'); rc.replaceChildren();
+    if (!state.loaded) { const tr = el('tr'); const td = el('td', 'empty', '불러오는 중이에요.'); td.colSpan = 10; tr.append(td); tb.append(tr); return; }
+    const rows = state.records.filter((r) => inFilter(r, { noText: true }))
+      .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || '') || a.id.localeCompare(b.id));
+    const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
+    rc.append(`${period}${state.f.labeler ? ` · ${state.f.labeler} 님` : ''} `);
+    if (state.f.type) rc.append(typePill(state.f.type), ' ');
+    rc.append(el('b', null, `${fmt(rows.length)}건`));
+    if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 10; tr.append(td); tb.append(tr); return; }
+    rows.forEach((r) => {
+      const tr = el('tr');
+      tr.append(el('td', 'code', r.date || ''), copyCell(r.collection), copyCell(r.inbound), codeCell(r.before), codeCell(r.after), el('td', null, r.product || ''));
+      const tt = el('td'); tt.append(typePill(r.type || '미기재')); tr.append(tt);
+      const ta = el('td'); ta.append(actPill(r.action || '미기재')); tr.append(ta);
+      const tl = el('td', null, r.labeler || '—'); if (!r.labeler) tl.style.color = 'var(--muted)'; tr.append(tl);
+      tr.append(el('td', null, r.memo || ''));
+      tb.append(tr);
+    });
+  }
+
+  // ---------- 입력 시트 ----------
+  const GRID_COLS = ['date', 'collection', 'inbound', 'before', 'after', 'product', 'type', 'labeler', 'memo', 'action'];
+  const SELECT_COLS = { type: '사유', labeler: '라벨팀', action: '처리' };
+  const NAME_FIX = { '은진': '박은진' }; const TYPE_FIX = { '스폐셜': '스페셜' };
+  const blankRow = () => ({ date: '', collection: '', inbound: '', before: '', after: '', product: '', type: '', labeler: '', memo: '', action: '', err: '', bad: [], editingId: null });
+  const entry = { rows: Array.from({ length: 8 }, blankRow) };
+  const rowHasContent = (r) => GRID_COLS.some((k) => k !== 'date' && String(r[k] || '').trim());
+  const ensureBlankTail = () => { let n = 0; for (let i = entry.rows.length - 1; i >= 0 && !rowHasContent(entry.rows[i]) && !entry.rows[i].editingId; i--) n++; for (; n < 3; n++) entry.rows.push(blankRow()); };
+
+  function normDate(s, fallbackYear) {
+    s = String(s || '').trim(); if (!s) return '';
+    let m = s.match(/^(\d{4})\s*[-./년]\s*(\d{1,2})\s*[-./월]\s*(\d{1,2})/);
+    if (m) return `${m[1]}-${pad(m[2])}-${pad(m[3])}`;
+    m = s.match(/^(\d{1,2})\s*[-./월]\s*(\d{1,2})/);
+    if (m) return `${fallbackYear}-${pad(m[1])}-${pad(m[2])}`;
+    return null; // 알아볼 수 없는 날짜
+  }
+  function cleanCell(k, v) {
+    v = String(v ?? '').replace(/\r/g, '').trim();
+    if (k === 'type') return TYPE_FIX[v] || v;
+    if (k === 'labeler') return NAME_FIX[v] || v;
+    return v;
+  }
+  // 날짜 칸이 비면 윗줄 날짜를 따라가요 (첫 줄은 오늘)
+  function resolvedDates() {
+    let cur = today(); const year = today().slice(0, 4);
+    return entry.rows.map((r) => { const d = normDate(r.date, year); if (d) cur = d; return d === null ? null : cur; });
+  }
+  function optionsFor(k, cur) {
+    const base = k === 'type' ? sortKo(state.lists.types.length ? state.lists.types : DEFAULT_LISTS.types)
+      : k === 'labeler' ? [...state.lists.labelers]
+      : (state.lists.actions || DEFAULT_LISTS.actions).filter((a) => a !== '환불');
+    const list = [...base]; if (cur && !list.includes(cur)) list.push(cur);
+    return [new Option('', ''), ...list.map((v) => new Option(v, v))];
+  }
+
+  function renderGrid() {
+    const tb = $('#grid-body'); if (!tb) return;
+    ensureBlankTail();
+    const dates = resolvedDates();
+    tb.replaceChildren();
+    entry.rows.forEach((r, ri) => {
+      const tr = el('tr'); tr.dataset.ri = ri;
+      if (r.err) tr.classList.add('has-err'); if (r.editingId) tr.classList.add('is-edit');
+      const no = el('td', 'g-no', r.editingId ? '수정' : String(ri + 1)); tr.append(no);
+      GRID_COLS.forEach((k, ci) => {
+        const td = el('td'); if (r.bad.includes(k)) td.classList.add('bad');
+        let inp;
+        if (SELECT_COLS[k]) {
+          inp = document.createElement('select'); inp.replaceChildren(...optionsFor(k, r[k])); inp.value = r[k];
+          inp.setAttribute('aria-label', `${ri + 1}행 ${SELECT_COLS[k]}`);
+          inp.addEventListener('change', () => { r[k] = inp.value; if (rowHasContent(r) && ri >= entry.rows.length - 2) renderGrid(); });
+        } else {
+          inp = document.createElement('input'); inp.autocomplete = 'off'; inp.value = r[k];
+          if (['collection', 'inbound', 'before', 'after'].includes(k)) inp.className = 'mono';
+          if (k === 'collection' || k === 'inbound') inp.inputMode = 'numeric';
+          if (k === 'date') inp.placeholder = dates[ri] ? dates[ri].slice(5).replace('-', '/') : '';
+          inp.setAttribute('aria-label', `${ri + 1}행 ${({ date: '날짜', collection: '컬렉션', inbound: '입고번호', before: '수정 전', after: '수정 후', product: '포토카드명', memo: '메모' })[k]}`);
+          inp.addEventListener('input', () => { r[k] = inp.value; if (k === 'date') refreshDatePlaceholders(); });
+          inp.addEventListener('change', () => { if (rowHasContent(r) && ri >= entry.rows.length - 2) { const pos = [ri, ci]; renderGrid(); focusCell(...pos); } });
+        }
+        inp.dataset.ri = ri; inp.dataset.ci = ci;
+        inp.addEventListener('paste', onGridPaste);
+        inp.addEventListener('keydown', onGridKey);
+        td.append(inp);
+        if (k === 'product' && r.err) td.append(el('span', 'rowerr', r.err));
+        tr.append(td);
+      });
+      const x = el('td', 'g-x'); const xb = el('button', 'xbtn', '×'); xb.type = 'button'; xb.title = '이 줄 지우기'; xb.setAttribute('aria-label', `${ri + 1}행 지우기`);
+      xb.addEventListener('click', () => { entry.rows.splice(ri, 1); renderGrid(); renderRows(); });
+      x.append(xb); tr.append(x);
+      tb.append(tr);
+    });
+  }
+  function refreshDatePlaceholders() {
+    const dates = resolvedDates();
+    document.querySelectorAll('#grid-body input[data-ci="0"]').forEach((inp) => { const d = dates[+inp.dataset.ri]; inp.placeholder = d ? d.slice(5).replace('-', '/') : ''; });
+  }
+  function focusCell(ri, ci) {
+    const t = document.querySelector(`#grid-body [data-ri="${ri}"][data-ci="${ci}"]`); if (t) { t.focus(); if (t.select) t.select(); }
+  }
+  function onGridKey(e) {
+    const ri = +e.target.dataset.ri, ci = +e.target.dataset.ci;
+    const isSelect = e.target.tagName === 'SELECT';
+    if (e.key === 'Enter' && !e.isComposing) {
+      e.preventDefault();
+      if (ri + 1 >= entry.rows.length) { entry.rows.push(blankRow()); renderGrid(); }
+      focusCell(ri + 1, ci);
+    } else if (!isSelect && e.key === 'ArrowDown') { e.preventDefault(); if (ri + 1 < entry.rows.length) focusCell(ri + 1, ci); }
+    else if (!isSelect && e.key === 'ArrowUp') { e.preventDefault(); if (ri > 0) focusCell(ri - 1, ci); }
+  }
+  // 시트에서 여러 칸·여러 줄을 복사해 붙여넣으면 칸에 맞춰 나눠 넣어요
+  function onGridPaste(e) {
+    const text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!/[\t\n]/.test(text.replace(/\n+$/, ''))) return;   // 한 칸짜리는 그냥 붙여넣기
+    e.preventDefault();
+    const ri = +e.target.dataset.ri, ci = +e.target.dataset.ci;
+    const lines = text.replace(/\r/g, '').replace(/\n+$/, '').split('\n');
+    lines.forEach((line, li) => {
+      const cells = line.split('\t');
+      while (entry.rows.length <= ri + li) entry.rows.push(blankRow());
+      const row = entry.rows[ri + li];
+      cells.forEach((v, j) => { const k = GRID_COLS[ci + j]; if (k) row[k] = cleanCell(k, v); });
+    });
+    renderGrid(); focusCell(ri, ci);
+    msg(`${lines.length}줄을 붙여넣었어요. 확인하고 저장을 눌러 주세요.`);
+  }
+
+  async function saveGrid() {
+    if (!state.db || !state.canWrite || state.saving) return;
+    const dates = resolvedDates();
+    const existing = new Map(state.records.filter((r) => r.collection).map((r) => [String(r.collection), r.id]));
+    const seenCol = new Set(); const inserts = []; const updates = []; let errCount = 0;
+    entry.rows.forEach((r, i) => {
+      r.err = ''; r.bad = [];
+      if (!rowHasContent(r)) return;
+      const d = {}; GRID_COLS.forEach((k) => { d[k] = cleanCell(k, r[k]); }); d.date = dates[i]; d.qty = 1;
+      const miss = [];
+      if (!d.date) { miss.push('날짜'); r.bad.push('date'); }
+      if (!d.product) { miss.push('포토카드명'); r.bad.push('product'); }
+      if (!d.type) { miss.push('사유'); r.bad.push('type'); }
+      if (!d.labeler) { miss.push('라벨팀'); r.bad.push('labeler'); }
+      if (!d.action) { miss.push('처리'); r.bad.push('action'); }
+      if (miss.length) r.err = `${miss.join(', ')}을(를) 확인해 주세요`;
+      else if (d.collection) {
+        const owner = existing.get(d.collection);
+        if ((owner && owner !== r.editingId) || seenCol.has(d.collection)) { r.err = `컬렉션 ${d.collection}은 이미 기록돼 있어요`; r.bad.push('collection'); }
+      }
+      if (r.err) { errCount++; return; }
+      if (d.collection) seenCol.add(d.collection);
+      (r.editingId ? updates : inserts).push({ r, d });
+    });
+    if (!inserts.length && !updates.length) { renderGrid(); msg(errCount ? `${errCount}줄을 확인해 주세요.` : '저장할 내용이 없어요.', errCount ? 'err' : ''); return; }
+    state.saving = true; $('#save').disabled = true; msg('저장하는 중이에요.');
+    let saved = 0; let failed = '';
+    try {
+      if (inserts.length) {
+        const { error } = await state.db.from('records').insert(inserts.map(({ d }) => ({ ...toRow(d), source: 'entry' })));
+        if (error) throw error;
+        saved += inserts.length; inserts.forEach(({ r }) => { r.done = true; });
+      }
+      for (const { r, d } of updates) {
+        const { error } = await state.db.from('records').update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', r.editingId);
+        if (error) { failed = errText(error); r.err = `수정하지 못했어요: ${failed}`; errCount++; continue; }
+        saved++; r.done = true;
+      }
+    } catch (e) { logErr('저장', e); failed = errText(e); }
+    finally { state.saving = false; $('#save').disabled = false; }
+    const lastDate = [...inserts, ...updates].filter(({ r }) => r.done).map(({ d }) => d.date).sort().pop();
+    entry.rows = entry.rows.filter((r) => !r.done);
+    renderGrid();
+    if (lastDate && state.f.month && state.f.month !== lastDate.slice(0, 7)) { state.f.month = lastDate.slice(0, 7); }
+    renderAll();
+    if (failed && !saved) msg(`저장하지 못했어요. ${failed}`, 'err');
+    else msg(`${fmt(saved)}건을 저장했어요.${errCount ? ` 확인이 필요한 ${errCount}줄은 남겨 뒀어요.` : ''}`, errCount ? 'err' : 'ok');
+  }
+
   function renderFormLists() {
-    const types = sortKo(state.lists.types.length ? state.lists.types : DEFAULT_LISTS.types);
-    if (state.form.type && !types.includes(state.form.type)) types.push(state.form.type);
-    const actions = (state.lists.actions || DEFAULT_LISTS.actions).filter((a) => a !== '환불');
-    if (!actions.includes(state.form.action)) state.form.action = actions[0] || '수정';
-    const box = $('#f-type'); box.replaceChildren();
-    types.forEach((t) => {
-      const b = el('button', 'chip'); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(state.form.type === t));
-      b.style.setProperty('--c', typeColor(t)); const d = el('i', 'dot'); d.style.background = typeColor(t); b.append(d, el('span', null, t));
-      b.addEventListener('click', () => { state.form.type = t; renderFormLists(); });
-      box.append(b);
-    });
-    const seg = $('#f-action'); seg.replaceChildren();
-    actions.forEach((a) => {
-      const b = el('button', null, a); b.type = 'button'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(state.form.action === a));
-      b.style.setProperty('--c', actColor(a)); b.addEventListener('click', () => { state.form.action = a; renderFormLists(); });
-      seg.append(b);
-    });
-    const sel = $('#f-labeler'); const cur = sel.value;
-    const labs = [...state.lists.labelers];
-    if (cur && !labs.includes(cur)) labs.push(cur);
-    sel.replaceChildren(new Option('선택하세요', ''), ...labs.map((n) => new Option(n, n)));
-    sel.value = cur;
+    renderGrid();
     // 목록 관리
     const ml = $('#m-labelers'); ml.replaceChildren(...state.lists.labelers.map((n) => tagEl(n, () => saveLists({ labelers: state.lists.labelers.filter((x) => x !== n) }))));
     const mt = $('#m-types'); mt.replaceChildren(...sortKo(state.lists.types).map((n) => tagEl(n, () => saveLists({ types: state.lists.types.filter((x) => x !== n) }))));
@@ -540,60 +760,21 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   const msg = (text, kind) => { const m = $('#msg'); m.textContent = text; m.className = 'msg' + (kind ? ' ' + kind : ''); };
 
-  function readForm() {
-    const v = (id) => $(id).value.trim();
-    return {
-      date: v('#f-date'), labeler: v('#f-labeler'), type: state.form.type, action: state.form.action,
-      product: v('#f-product'), before: v('#f-before'), after: v('#f-after'), memo: v('#f-memo'),
-      qty: Math.max(1, Math.min(999, parseInt($('#f-qty').value, 10) || 1)), collection: v('#f-collection'), inbound: v('#f-inbound'),
-    };
-  }
-
-  async function save() {
-    if (!state.db || !state.canWrite || state.saving) return;
-    const d = readForm();
-    const missing = [!d.date && '날짜', !d.labeler && '라벨팀', !d.type && '오류 유형', !d.action && '처리', !d.product && '포토카드명'].filter(Boolean);
-    if (missing.length) { msg(`${missing.join(', ')}을(를) 입력해 주세요.`, 'err'); return; }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) { msg('날짜를 다시 확인해 주세요.', 'err'); return; }
-    state.saving = true; $('#save').disabled = true; msg('저장하는 중이에요.');
-    try {
-      if (state.editingId) {
-        const { error } = await state.db.from('records').update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', state.editingId);
-        if (error) throw error;
-        state.flashId = state.editingId; endEdit(); msg('수정했어요.', 'ok');
-      } else {
-        const { data, error } = await state.db.from('records').insert({ ...toRow(d), source: 'entry' }).select('id').single();
-        if (error) throw error;
-        state.flashId = data.id;
-        ['#f-before', '#f-after', '#f-memo'].forEach((s) => { $(s).value = ''; }); $('#f-qty').value = '1';
-        msg(`저장했어요. ${d.product} · ${d.type} ${d.qty}건`, 'ok');
-        if (state.f.month && state.f.month !== d.date.slice(0, 7)) { state.f.month = d.date.slice(0, 7); }
-      }
-    } catch (e) {
-      logErr('저장', e);
-      msg(`저장하지 못했어요. ${errText(e)}`, 'err');
-    } finally { state.saving = false; $('#save').disabled = false; }
-  }
-
+  // 상세 내역의 [수정] → 입력 시트 맨 위에 그 기록을 불러와요
   function startEdit(r) {
-    state.editingId = r.id; confirmId = null;
-    $('#f-date').value = r.date || ''; state.form.type = r.type || ''; state.form.action = r.action || '수정';
-    const sel = $('#f-labeler'); if (r.labeler && r.labeler !== '미기재' && ![...sel.options].some((o) => o.value === r.labeler)) sel.append(new Option(r.labeler, r.labeler));
-    sel.value = r.labeler && r.labeler !== '미기재' ? r.labeler : '';
-    [['#f-product', 'product'], ['#f-before', 'before'], ['#f-after', 'after'], ['#f-memo', 'memo'], ['#f-collection', 'collection'], ['#f-inbound', 'inbound']].forEach(([s, k]) => { $(s).value = r[k] || ''; });
-    $('#f-qty').value = String(qty(r));
-    $('#entry').classList.add('editing'); $('#entry-title').textContent = '기록 수정'; $('#save').textContent = '수정 저장'; $('#cancel').hidden = false;
-    msg(''); renderFormLists(); renderRows();
+    confirmId = null;
+    if (entry.rows.some((x) => x.editingId === r.id)) { focusCell(entry.rows.findIndex((x) => x.editingId === r.id), 5); return; }
+    const row = blankRow();
+    Object.assign(row, { date: r.date || '', collection: r.collection || '', inbound: r.inbound || '', before: r.before || '', after: r.after || '', product: r.product || '', type: r.type || '', labeler: r.labeler || '', memo: r.memo || '', action: r.action || '', editingId: r.id });
+    const firstEmpty = entry.rows.findIndex((x) => !rowHasContent(x) && !x.editingId);
+    entry.rows.splice(firstEmpty < 0 ? entry.rows.length : firstEmpty, 0, row);
+    renderGrid(); renderRows();
     $('#entry').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    msg('불러온 줄(노란색)을 고친 뒤 저장을 누르면 수정돼요.');
   }
-  function endEdit() {
-    state.editingId = null;
-    $('#entry').classList.remove('editing'); $('#entry-title').textContent = '새 기록'; $('#save').textContent = '기록 저장'; $('#cancel').hidden = true;
-    ['#f-before', '#f-after', '#f-memo', '#f-collection', '#f-inbound'].forEach((s) => { $(s).value = ''; }); $('#f-qty').value = '1';
-    renderFormLists(); renderRows();
-  }
+  function endEdit() { entry.rows = entry.rows.filter((x) => !x.editingId); renderGrid(); renderRows(); }
   async function removeRecord(r) {
-    try { const { error } = await state.db.from('records').delete().eq('id', r.id); if (error) throw error; if (state.editingId === r.id) endEdit(); msg('삭제했어요.', 'ok'); }
+    try { const { error } = await state.db.from('records').delete().eq('id', r.id); if (error) throw error; if (entry.rows.some((x) => x.editingId === r.id)) endEdit(); msg('삭제했어요.', 'ok'); }
     catch (e) { logErr('삭제', e); msg(`삭제하지 못했어요. ${errText(e)}`, 'err'); renderRows(); }
   }
   async function saveLists(patch) {
@@ -617,9 +798,12 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   }
   document.querySelectorAll('.tab').forEach((t) => t.addEventListener('click', () => showView(t.dataset.view)));
   window.addEventListener('hashchange', () => showView(location.hash.slice(1)));
-  showView(location.hash.slice(1) || 'record');
+  const askedView = location.hash.slice(1);
+  showView(askedView || 'dashboard');
   $('#d-month').addEventListener('change', (e) => { state.f.month = e.target.value; renderAll(); });
   $('#d-labeler').addEventListener('change', (e) => { state.f.labeler = e.target.value; renderAll(); });
+  $('#d-type').addEventListener('change', (e) => { state.f.type = e.target.value; renderAll(); });
+  $('#d-clear').addEventListener('click', () => { state.f.type = ''; state.f.labeler = ''; renderAll(); });
 
   // ---------- 이벤트 ----------
   let toastTimer = null;
@@ -638,7 +822,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       ta.remove(); return ok;
     }
   }
-  $('#rows').addEventListener('click', async (e) => {
+  const onCopyClick = async (e) => {
     const td = e.target.closest && e.target.closest('[data-copy]');
     if (!td) return;
     if (String(window.getSelection()).trim()) return; // 드래그로 직접 선택한 경우는 그대로 둬요
@@ -647,15 +831,17 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       toast(`${td.dataset.copy} 복사했어요`);
       td.classList.add('copied'); setTimeout(() => td.classList.remove('copied'), 600);
     } else toast('복사하지 못했어요. 드래그해서 복사해 주세요.');
-  });
-  $('#rows').addEventListener('dblclick', (e) => {
+  };
+  const onNumDblClick = (e) => {
     const n = e.target.closest && e.target.closest('.code-num');
     if (!n) return;
     const range = document.createRange(); range.selectNodeContents(n);
     const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
-  });
-  $('#save').addEventListener('click', save);
-  $('#cancel').addEventListener('click', () => { endEdit(); msg(''); });
+  };
+  ['#rows', '#d-rows'].forEach((s) => { $(s).addEventListener('click', onCopyClick); $(s).addEventListener('dblclick', onNumDblClick); });
+  $('#save').addEventListener('click', saveGrid);
+  $('#add-rows').addEventListener('click', () => { for (let i = 0; i < 5; i++) entry.rows.push(blankRow()); renderGrid(); });
+  $('#clear-rows').addEventListener('click', () => { entry.rows = Array.from({ length: 8 }, blankRow); renderGrid(); renderRows(); msg(''); });
   $('#q-month').addEventListener('change', (e) => { state.f.month = e.target.value; renderAll(); });
   $('#q-type').addEventListener('change', (e) => { state.f.type = e.target.value; renderAll(); });
   $('#q-labeler').addEventListener('change', (e) => { state.f.labeler = e.target.value; renderAll(); });
@@ -667,9 +853,9 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   $('#m-type-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTo('types', '#m-type-in'); });
   $('#export').addEventListener('click', async () => {
     const rows = state.records.filter((r) => inFilter(r)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    const cols = [['date', '날짜'], ['type', '사유'], ['product', '포토카드명'], ['before', '수정 전'], ['after', '수정 후'], ['qty', '수량'], ['action', '처리'], ['labeler', '라벨팀'], ['collection', '컬렉션'], ['inbound', '입고번호'], ['memo', '메모']];
+    const cols = [['date', '날짜'], ['type', '사유'], ['product', '포토카드명'], ['before', '수정 전'], ['after', '수정 후'], ['action', '처리'], ['labeler', '라벨팀'], ['collection', '컬렉션'], ['inbound', '입고번호'], ['memo', '메모']];
     const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
-    const csv = '\ufeff' + [cols.map((c) => c[1]).join(','), ...rows.map((r) => cols.map(([k]) => esc(k === 'qty' ? qty(r) : r[k])).join(','))].join('\n');
+    const csv = '\ufeff' + [cols.map((c) => c[1]).join(','), ...rows.map((r) => cols.map(([k]) => esc(r[k])).join(','))].join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
     a.download = `라벨오류_${state.f.month || '전체'}.csv`; document.body.append(a); a.click(); a.remove();
@@ -678,7 +864,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   function applyWrite() {
     $('#form').hidden = !state.canWrite; $('#readonly').hidden = state.canWrite;
-    $('#entry-hint').hidden = !state.canWrite;
+    $('#entry-hint').hidden = !state.canWrite; $('#entry-actions').hidden = !state.canWrite;
     renderFormLists(); renderRows();
   }
 
@@ -724,8 +910,50 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   let channel = null;
   let realtimeWarned = false;
 
+  // 로그인한 사람만 기록 탭을 쓸 수 있어요. 대시보드는 누구나 볼 수 있어요.
+  function applyAuth() {
+    const on = !!state.session;
+    state.canWrite = on;
+    $('#login').hidden = on; $('#record-body').hidden = !on;
+    $('#logout').hidden = !on; $('#pw-open').hidden = !on; $('#tab-lock').hidden = on;
+    if (!on) $('#pw-panel').hidden = true;
+    const who = $('#who'); who.hidden = !on; who.textContent = on ? `· ${state.session.user.email}` : '';
+    applyWrite(); renderAll();
+  }
+  async function login() {
+    const email = $('#l-email').value.trim(), password = $('#l-pass').value;
+    const m = $('#l-msg');
+    if (!email || !password) { m.textContent = '이메일과 비밀번호를 입력해 주세요.'; m.className = 'msg err'; return; }
+    m.textContent = '로그인하는 중이에요.'; m.className = 'msg';
+    const { error } = await state.db.auth.signInWithPassword({ email, password });
+    if (error) { m.textContent = '이메일이나 비밀번호가 맞지 않아요.'; m.className = 'msg err'; return; }
+    m.textContent = ''; $('#l-pass').value = '';
+  }
+
   async function startApp() {
-    state.canWrite = true; applyWrite();
+    $('#l-go').addEventListener('click', login);
+    $('#l-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') login(); });
+    $('#logout').addEventListener('click', () => state.db.auth.signOut());
+    // 비밀번호 바꾸기: 관리자가 정해 준 임시 비밀번호를 본인이 직접 바꿔요
+    $('#pw-open').addEventListener('click', () => { $('#pw-panel').hidden = false; $('#pw-msg').textContent = ''; $('#pw-new').focus(); });
+    $('#pw-cancel').addEventListener('click', () => { $('#pw-panel').hidden = true; $('#pw-new').value = ''; $('#pw-new2').value = ''; });
+    $('#pw-save').addEventListener('click', async () => {
+      const a = $('#pw-new').value, b = $('#pw-new2').value, m = $('#pw-msg');
+      if (a.length < 8) { m.textContent = '8자 이상으로 정해 주세요.'; m.className = 'msg err'; return; }
+      if (a !== b) { m.textContent = '두 칸이 서로 달라요.'; m.className = 'msg err'; return; }
+      m.textContent = '바꾸는 중이에요.'; m.className = 'msg';
+      const { error } = await state.db.auth.updateUser({ password: a });
+      if (error) { m.textContent = `바꾸지 못했어요. ${errText(error)}`; m.className = 'msg err'; return; }
+      $('#pw-new').value = ''; $('#pw-new2').value = '';
+      m.textContent = '비밀번호를 바꿨어요. 다음 로그인부터 새 비밀번호를 쓰면 돼요.'; m.className = 'msg ok';
+    });
+    const { data: sess } = await state.db.auth.getSession();
+    state.session = sess ? sess.session : null; applyAuth();
+    if (!askedView && state.session) showView('record');
+    state.db.auth.onAuthStateChange((_event, session) => {
+      const was = !!state.session; state.session = session;
+      if (was !== !!session) applyAuth();
+    });
     try { await Promise.all([loadLists(), loadRecords()]); }
     catch (e) {
       logErr('처음 불러오기', e);
