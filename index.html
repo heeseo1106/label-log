@@ -4,14 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>POCA Label Log</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
   color-scheme: light;
   --bg: #F2F4F7; --surface: #FFFFFF; --ink: #18202B; --muted: #5B6675; --line: #DCE1E7;
   --accent: #EC5E52; --accent-ink: #FFFFFF; --fix: #7CBF3F; --fix-ink: #3E7516; --buy: #D7262E; --buy-ink: #B3202A; --edit: #E3A008; --bad: #C2413B; --ok: #3F8F2A;
+  --bar-fix: #95CF6A; --bar-buy: #F3857A; --bar-etc: #C9CED5;
   --field: #F7F8FA; --shadow: 0 1px 2px rgba(24,32,43,.06);
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -21,6 +19,7 @@
     color-scheme: dark;
     --bg: #12161C; --surface: #1A2029; --ink: #E7EBF0; --muted: #9AA5B3; --line: #2D3542;
     --accent: #FF8276; --accent-ink: #2A0F0C; --fix: #9FD66B; --fix-ink: #B5E28A; --buy: #FF5C61; --buy-ink: #FF8A8D; --edit: #F2C14E; --bad: #EE7B74; --ok: #9FD66B;
+    --bar-fix: #8CC766; --bar-buy: #EE8A80; --bar-etc: #5A616C;
     --field: #151A22; --shadow: none;
   }
 }
@@ -28,17 +27,19 @@
   color-scheme: dark;
   --bg: #12161C; --surface: #1A2029; --ink: #E7EBF0; --muted: #9AA5B3; --line: #2D3542;
   --accent: #FF8276; --accent-ink: #2A0F0C; --fix: #9FD66B; --fix-ink: #B5E28A; --buy: #FF5C61; --buy-ink: #FF8A8D; --edit: #F2C14E; --bad: #EE7B74; --ok: #9FD66B;
+    --bar-fix: #8CC766; --bar-buy: #EE8A80; --bar-etc: #5A616C;
   --field: #151A22; --shadow: none;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", system-ui, sans-serif; font-size: 15px; line-height: 1.55; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "맑은 고딕", "Noto Sans KR", "Segoe UI", sans-serif; font-size: 15px; line-height: 1.55; }
 button, input, select { font: inherit; color: inherit; }
-.wrap { max-width: 1480px; margin: 0 auto; padding: 28px 20px 48px; }
-header.top > div:first-child { flex: 1 1 auto; min-width: 0; }
-header.top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 22px; }
-h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
-.summary { margin: 6px 0 0; color: var(--muted); }
+.wrap { max-width: 1480px; margin: 0 auto; padding: 22px 20px 40px; }
+header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+header.top .brand { min-width: 0; }
+header.top .status { margin-left: auto; text-align: right; }
+h1 { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.summary { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 .summary b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
 .status { font-size: 13px; color: var(--muted); }
 .layout { display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 20px; align-items: start; }
@@ -86,7 +87,7 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 #who { margin-left: 8px; }
 
 /* 탭 */
-.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 18px; }
+.tabs { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
 .tab { border: 0; background: transparent; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; color: var(--muted); min-height: 38px; }
 .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
 .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -94,8 +95,15 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .side .records { margin-top: 0; }
 .kpi-wide { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 16px 20px; }
 .kpi-wide .v { margin-top: 0; }
-.dash-filters { margin: 0 0 16px; }
-.dash-records { margin-top: 20px; scroll-margin-top: 16px; }
+.dash-filters { margin: 0 0 12px; align-items: center; }
+.iconbtn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); cursor: pointer; }
+.iconbtn:hover { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.iconbtn[hidden] { display: none; }
+.iconbtn.lg { width: 42px; height: 42px; border-radius: 8px; color: var(--ink); }
+.dash-records { margin-top: 14px; scroll-margin-top: 16px; }
+.dash-records .tablebox { max-height: 420px; }
+.dash-records .rec-head { margin-bottom: 10px; }
 .rowcount .chip-inline { margin-left: 6px; vertical-align: 1px; }
 .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 20px; align-items: stretch; }
 .dash-grid > .panel { display: flex; flex-direction: column; min-height: 100%; }
@@ -111,9 +119,11 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .grid th:last-child, .grid td:last-child { border-right: 0; }
 .grid tr:last-child td { border-bottom: 0; }
 .grid .g-no { width: 34px; text-align: center; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.grid .g-date { width: 112px; } .grid .g-wide { min-width: 230px; } .grid .g-memo { min-width: 130px; } .grid .g-x { width: 34px; }
+.grid .g-date { width: 84px; } .grid .g-id { width: 104px; } .grid .g-inb { width: 80px; } .grid .g-code { width: 132px; } .grid .g-wide { min-width: 280px; }
+.grid .g-type { width: 150px; } .grid .g-lab { width: 92px; } .grid .g-act { width: 84px; } .grid .g-memo { width: 130px; } .grid .g-x { width: 34px; }
+.grid select { padding-right: 22px; text-overflow: clip; }
 .grid input, .grid select { width: 100%; border: 0; background: transparent; padding: 8px; min-height: 36px; font: inherit; color: inherit; border-radius: 0; }
-.grid input.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; }
+.grid input.mono { font-variant-numeric: tabular-nums; }
 .grid input:focus, .grid select:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--surface); }
 .grid input::placeholder { color: var(--muted); opacity: .55; }
 .grid tr.has-err td { background: color-mix(in srgb, var(--bad) 8%, transparent); }
@@ -133,18 +143,65 @@ h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
 .kpi .v { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; margin-top: 4px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .kpi .v.word { font-size: 24px; }
 .kpi .s { font-size: 13px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
-.bars { position: relative; }
-.bar { display: grid; grid-template-columns: minmax(96px, 140px) 1fr auto; gap: 10px; align-items: center; padding: 4px 0; cursor: pointer; border-radius: 6px; }
-.bar.dim { opacity: .35; }
-.bar .lb { font-size: 13.5px; display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bar .lb .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
-.bar .tr { display: flex; height: 16px; min-width: 0; }
+.card { display: flex; flex-direction: column; gap: 10px; padding: 16px 18px; }
+.stats-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 14px; }
+.dash-left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.dash-left > .card { flex: 1 1 auto; }
+.stat { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'k s' 'v s'; align-items: center; column-gap: 16px; padding: 8px 20px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line)); border-left: 5px solid var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--surface)); box-shadow: var(--shadow); min-width: 0; }
+.stat .k { grid-area: k; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.stat .v { grid-area: v; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin-top: 0; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--ink); }
+.stat .v.word { font-size: 18px; padding: 3px 0 1px; }
+.stat .v .pill { font-size: 17px; font-weight: 700; padding: 3px 14px; letter-spacing: -0.01em; }
+.stat .s { grid-area: s; justify-self: end; text-align: right; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.4; }
+.stat .s b { display: block; font-size: 18px; color: var(--ink); font-weight: 700; }
+.stat .delta { display: inline-block; margin-top: 2px; padding: 2px 9px; border-radius: 999px; font-size: 13.5px; font-weight: 700; }
+.stat .delta.up { color: var(--buy-ink); background: color-mix(in srgb, var(--buy) 12%, transparent); }
+.stat .delta.down { color: var(--fix-ink); background: color-mix(in srgb, var(--fix) 18%, transparent); }
+.stat .delta.same { color: var(--muted); background: var(--field); }
+.heat-legend span { background: none; padding: 0; gap: 3px; }
+.heat-legend i { width: 14px; height: 10px; border-radius: 3px; }
+.heat-legend .g1 { background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.heat-legend .g2 { background: color-mix(in srgb, var(--accent) 35%, var(--surface)); }
+.heat-legend .g3 { background: color-mix(in srgb, var(--accent) 60%, var(--surface)); }
+.card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px 16px; flex-wrap: wrap; }
+.card-head h2 { margin: 0; font-size: 17px; }
+.card-sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card-sub b { color: var(--ink); font-weight: 600; }
+.card-foot { margin: auto 0 0; font-size: 12px; color: var(--muted); padding-top: 4px; }
+.legend { display: flex; gap: 6px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; background: var(--field); }
+.legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.bars { position: relative; display: flex; flex-direction: column; gap: 1px; }
+.bar { display: grid; grid-template-columns: minmax(110px, 150px) 1fr auto; gap: 12px; align-items: center; padding: 5px 8px; border-radius: 8px; cursor: pointer; transition: background .15s; }
+.bar:hover, .bar:focus-visible { background: var(--field); outline: none; }
+.bar.on { background: color-mix(in srgb, var(--accent) 8%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+.bar.dim { opacity: .4; }
+.bar .lb { display: flex; align-items: center; gap: 7px; font-size: 13.5px; font-weight: 500; min-width: 0; }
+.bar .lb span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar .lb .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.bar .tr { display: flex; gap: 2px; height: 12px; border-radius: 999px; background: var(--field); overflow: hidden; }
+.bar:hover .tr, .bar.on .tr { background: var(--line); }
 .bar .tr span { height: 100%; }
-.bar .tr span:first-child { border-radius: 3px 0 0 3px; } .bar .tr span:last-child { border-radius: 0 3px 3px 0; }
-.bar .n { font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; min-width: 72px; }
-.bar .n em { font-style: normal; color: var(--muted); }
-.legend { display: flex; gap: 14px; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.bar .n { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; min-width: 96px; }
+.bar .n b { font-size: 14px; color: var(--ink); font-weight: 600; margin-right: 2px; }
+.bar .n .buy { color: var(--accent); margin-left: 5px; font-weight: 600; }
+.bars .more-types { border: 0; background: none; color: var(--accent); cursor: pointer; font-size: 12.5px; text-align: left; padding: 6px 8px 0; }
+.heatbox { overflow: visible; }
+.heat { border-collapse: separate; border-spacing: 3px; width: 100%; font-size: 13px; }
+.heat th { border: 0; background: transparent; font-size: 12px; padding: 2px 6px 6px; text-align: center; }
+.heat th:first-child { text-align: left; }
+.heat th.latest { color: var(--ink); font-weight: 600; }
+.heat td { border: 0; padding: 0; vertical-align: middle; }
+.heat td.lbl { padding-right: 4px; white-space: nowrap; width: 1%; }
+.heat td.cell { text-align: center; border-radius: 7px; height: 30px; min-width: 0; font-weight: 500; font-variant-numeric: tabular-nums; }
+.heat td.zero { color: var(--muted); opacity: .6; }
+.heat td.tot { text-align: right; font-weight: 600; padding: 0 6px 0 10px; font-variant-numeric: tabular-nums; }
+.heat tbody tr { cursor: pointer; }
+.heat tbody tr:hover td.lbl .pill { box-shadow: inset 0 0 0 1.5px rgba(0,0,0,.25); }
+.heat tbody tr.dim { opacity: .4; }
+.heat tfoot td { font-size: 12.5px; color: var(--muted); text-align: center; padding-top: 6px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.heat tfoot td:first-child { text-align: left; font-weight: 500; }
+.heat tfoot td.tot { color: var(--ink); text-align: right; }
 .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; font-size: 12.5px; line-height: 1.5; box-shadow: 0 6px 18px rgba(0,0,0,.14); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
@@ -158,11 +215,18 @@ td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .act-etc { background: var(--field); border-color: var(--line) !important; color: var(--muted); }
 .pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px; border-radius: 999px; white-space: nowrap; font-size: 12.5px; line-height: 1.5; }
 .pill .dot { width: 7px; height: 7px; border-radius: 50%; }
-.code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; white-space: nowrap; }
+.code { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .empty { color: var(--muted); font-size: 13.5px; padding: 18px 0; }
 
 /* 내역 */
 .records { margin-top: 20px; }
+.rec-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.rec-head h2 { margin: 0; }
+.rec-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.cs { display: inline-flex; align-items: baseline; gap: 6px; padding: 5px 12px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.cs em { font-style: normal; font-weight: 500; }
+.cs b { font-size: 17px; font-weight: 700; color: var(--ink); }
+.cs.today { background: color-mix(in srgb, var(--fix) 14%, var(--surface)); border-color: color-mix(in srgb, var(--fix) 40%, var(--line)); }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 10px 0 14px; }
 .filters .in { width: auto; min-width: 120px; min-height: 36px; padding: 6px 10px; }
 .filters .search { flex: 1 1 200px; }
@@ -173,11 +237,39 @@ th.no-col, td.no-col { width: 1%; color: var(--muted); padding-right: 4px; }
 [data-copy]:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 [data-copy]:hover .code-num { text-decoration: underline; text-underline-offset: 3px; }
 [data-copy].copied { background: color-mix(in srgb, var(--fix) 28%, transparent); }
+.undo-toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: flex; align-items: center; gap: 14px; max-width: calc(100vw - 32px); background: var(--ink); color: var(--bg); padding: 10px 10px 10px 18px; border-radius: 12px; font-size: 14px; z-index: 60; box-shadow: 0 10px 28px rgba(0,0,0,.25); }
+.undo-toast[hidden] { display: none; }
+.undo-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.undo-btn { border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font-weight: 700; padding: 7px 14px; cursor: pointer; white-space: nowrap; }
+.undo-btn:disabled { opacity: .6; }
+.undo-x { border: 0; background: none; color: inherit; opacity: .6; cursor: pointer; font-size: 14px; padding: 4px 6px; }
+.undo-x:hover { opacity: 1; }
 .toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13.5px; z-index: 50; pointer-events: none; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
 .tablebox { max-height: 640px; overflow: auto; border-top: 1px solid var(--line); }
 .tablebox thead th { position: sticky; top: 0; z-index: 1; }
+.tablebox td { vertical-align: middle; padding-top: 9.5px; padding-bottom: 8.5px; }   /* 글자는 글꼴 특성상 살짝 위로 떠 보여서 0.5px 내려요 */
+.tablebox td:has(.pill, .rowbtn) { padding-top: 9px; padding-bottom: 9px; }
 .linkbtn { background: none; border: 0; padding: 2px 4px; color: var(--accent); cursor: pointer; font-size: 13px; }
 .linkbtn.danger { color: var(--bad); }
+table th.memo, table td.memo { min-width: 104px; }
+.rowbtn { border: 1px solid transparent; border-radius: 6px; padding: 3px 9px; font-size: 12.5px; font-weight: 500; cursor: pointer; background: none; }
+.rowbtn + .rowbtn { margin-left: 4px; }
+.rowbtn.edit { color: var(--ink); background: var(--field); border-color: var(--line); }
+.rowbtn.edit:hover { border-color: var(--muted); }
+.rowbtn.del { color: var(--bad); }
+.rowbtn.save { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-weight: 600; }
+.rowbtn.save:disabled { opacity: .6; }
+tr.inline-row td { background: color-mix(in srgb, var(--edit) 12%, transparent); }
+.tablebox td.ie { padding: 5px 3px; }
+.tablebox td.ie input, .tablebox td.ie select { width: 100%; min-width: 0; font: inherit; font-size: 13px; color: inherit; padding: 5px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-variant-numeric: tabular-nums; }
+.tablebox td.ie input:focus, .tablebox td.ie select:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+.tablebox td.ie.bad input, .tablebox td.ie.bad select { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
+.tablebox td.ie-act { white-space: nowrap; }
+.tablebox td.ie.sel-labeler select { min-width: 78px; }
+.tablebox td.ie.sel-action select { min-width: 64px; }
+.ie-err { font-size: 11.5px; color: var(--bad); margin-top: 3px; white-space: normal; }
+.rowbtn.del:hover { background: color-mix(in srgb, var(--bad) 10%, transparent); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+.rowbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent); }
 .listmgr { margin-top: 20px; }
 .listmgr summary { cursor: pointer; font-weight: 500; }
@@ -194,10 +286,14 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 <body>
 <div class="wrap">
   <header class="top">
-    <div>
+    <div class="brand">
       <h1>POCA Label Log</h1>
-      <p class="summary" id="summary">기록을 불러오는 중이에요.</p>
+      <p class="summary" id="summary" hidden></p>
     </div>
+    <nav class="tabs" role="tablist" aria-label="화면 선택">
+    <button class="tab" role="tab" id="tab-record" data-view="record" aria-controls="view-record" aria-selected="true">기록<span id="tab-lock" aria-hidden="true"> 🔒</span></button>
+    <button class="tab" role="tab" id="tab-dashboard" data-view="dashboard" aria-controls="view-dashboard" aria-selected="false">대시보드</button>
+  </nav>
     <div class="status"><span id="status"></span><span id="who" hidden></span> <button class="linkbtn" id="pw-open" type="button" hidden>비밀번호 바꾸기</button> <button class="linkbtn" id="logout" type="button" hidden>로그아웃</button></div>
   </header>
 
@@ -214,10 +310,6 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     <div class="msg" id="pw-msg" role="status" aria-live="polite"></div>
   </section>
 
-  <nav class="tabs" role="tablist" aria-label="화면 선택">
-    <button class="tab" role="tab" id="tab-record" data-view="record" aria-controls="view-record" aria-selected="true">기록<span id="tab-lock" aria-hidden="true"> 🔒</span></button>
-    <button class="tab" role="tab" id="tab-dashboard" data-view="dashboard" aria-controls="view-dashboard" aria-selected="false">대시보드</button>
-  </nav>
 
   <section class="view" id="view-record" role="tabpanel" aria-labelledby="tab-record">
     <section class="panel login" id="login" hidden aria-labelledby="login-title">
@@ -236,8 +328,8 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
           <p class="hint" id="entry-hint">시트처럼 한 줄에 하나씩 적고 저장하세요. 날짜를 비우면 윗줄 날짜를 따라가고, 시트에서 여러 줄을 복사해 붙여넣어도 돼요.</p>
         </div>
         <div class="actions" id="entry-actions">
-          <button class="btn ghost" id="add-rows" type="button">줄 추가</button>
-          <button class="btn ghost" id="clear-rows" type="button">입력 비우기</button>
+          <button class="iconbtn lg" id="add-rows" type="button" title="줄 추가 (5줄)" aria-label="줄 추가"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="iconbtn lg" id="clear-rows" type="button" title="입력 비우기" aria-label="입력 비우기"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
           <button class="btn" id="save" type="button">저장</button>
         </div>
       </div>
@@ -245,9 +337,9 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       <div id="form" class="gridbox">
         <table class="grid" aria-label="새 기록 입력">
           <thead><tr>
-            <th class="g-no">#</th><th class="g-date">날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th>
-            <th class="g-wide">포토카드명 <span class="req-dot">*</span></th><th>사유 <span class="req-dot">*</span></th><th>라벨팀 <span class="req-dot">*</span></th>
-            <th class="g-memo">메모</th><th>처리 <span class="req-dot">*</span></th><th class="g-x"><span class="sr-only">줄 지우기</span></th>
+            <th class="g-no">#</th><th class="g-date">날짜</th><th class="g-id">컬렉션</th><th class="g-inb">입고번호</th><th class="g-code">수정 전</th><th class="g-code">수정 후</th>
+            <th class="g-wide">포토카드명 <span class="req-dot">*</span></th><th class="g-type">유형 <span class="req-dot">*</span></th><th class="g-lab">라벨팀 <span class="req-dot">*</span></th>
+            <th class="g-memo">메모</th><th class="g-act">처리 <span class="req-dot">*</span></th><th class="g-x"><span class="sr-only">줄 지우기</span></th>
           </tr></thead>
           <tbody id="grid-body"></tbody>
         </table>
@@ -255,21 +347,26 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       <div class="msg" id="msg" role="status" aria-live="polite"></div>
     </section>
 
-    <div class="panel kpi kpi-wide"><div class="k">수정 건수</div><div class="v" id="k-total">—</div><div class="s" id="k-total-s">&nbsp;</div></div>
     <section class="panel records" id="records" aria-labelledby="rec-title">
-      <h2 id="rec-title">상세 내역</h2>
+      <div class="rec-head">
+        <h2 id="rec-title">상세 내역</h2>
+        <div class="rec-stats">
+          <span class="cs"><em id="k-total-label">이번 달</em><b id="k-total">—</b>건</span>
+          <span class="cs today"><em id="k-today-label">오늘</em><b id="k-today">—</b>건</span>
+        </div>
+      </div>
       <div class="filters">
         <select class="in" id="q-month" aria-label="월"></select>
         <select class="in" id="q-type" aria-label="유형"></select>
         <select class="in" id="q-labeler" aria-label="라벨팀"></select>
         <input class="in search" id="q-text" type="search" placeholder="포토카드명이나 번호로 찾기" aria-label="포토카드명이나 번호로 찾기">
-        <button class="btn ghost" id="q-clear" type="button" hidden>필터 지우기</button>
+        <button class="iconbtn" id="q-clear" type="button" hidden title="필터 지우기" aria-label="필터 지우기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
         <button class="btn ghost" id="export" type="button" hidden>CSV로 내려받기</button>
       </div>
       <p class="rowcount" id="rowcount" hidden></p>
       <div class="tablebox">
         <table aria-label="수정 상세 내역">
-          <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th><th class="edit-col">관리</th></tr></thead>
+          <thead><tr><th class="no-col num" hidden>번호</th><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th class="memo">메모</th><th class="edit-col">관리</th></tr></thead>
           <tbody id="rows"></tbody>
         </table>
       </div>
@@ -293,28 +390,54 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       <select class="in" id="d-month" aria-label="월"></select>
       <select class="in" id="d-labeler" aria-label="라벨팀"></select>
       <select class="in" id="d-type" aria-label="유형"></select>
-      <button class="btn ghost" id="d-clear" type="button" hidden>필터 지우기</button>
+      <button class="iconbtn" id="d-clear" type="button" hidden title="필터 지우기" aria-label="필터 지우기"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
     </div>
     <div class="dash-grid">
-      <section class="panel" aria-labelledby="bars-title">
-        <h2 id="bars-title">유형별 건수</h2>
-        <p class="hint">막대를 누르면 아래 상세 내역에서 그 유형만 볼 수 있어요. 한 번 더 누르면 전체로 돌아가요.</p>
-        <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
-        <div class="bars" id="bars"></div>
-      </section>
-      <section class="panel" aria-labelledby="matrix-title">
-        <h2 id="matrix-title">월별 유형 추이</h2>
-        <p class="hint">월 선택과 상관없이 전체 기간을 보여줘요. 라벨팀 선택은 적용돼요.</p>
-        <div class="scroll"><table id="matrix" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody></table></div>
+      <div class="dash-left">
+      <div class="stats-strip" id="d-stats">
+        <div class="stat">
+          <div class="k" id="s1-k">오류 건수</div>
+          <div class="v" id="s1-v">—</div>
+          <div class="s" id="s1-s">&nbsp;</div>
+        </div>
+        <div class="stat">
+          <div class="k">최다 유형</div>
+          <div class="v word" id="s2-v">—</div>
+          <div class="s" id="s2-s">&nbsp;</div>
+        </div>
+      </div>
+        <section class="panel card" aria-labelledby="bars-title">
+          <header class="card-head">
+            <div>
+              <h2 id="bars-title">유형별 건수</h2>
+              <p class="card-sub" id="bars-sub">&nbsp;</p>
+            </div>
+            <div class="legend"><span><i id="lg-fix"></i>수정</span><span><i id="lg-buy"></i>구매</span><span><i id="lg-etc"></i>미기재</span></div>
+          </header>
+          <div class="bars" id="bars"></div>
+        </section>
+      </div>
+      <section class="panel card" aria-labelledby="matrix-title">
+        <header class="card-head">
+          <div>
+            <h2 id="matrix-title">월별 유형 추이</h2>
+            <p class="card-sub" id="matrix-sub">&nbsp;</p>
+          </div>
+          <div class="legend heat-legend"><span>적음 <i class="g1"></i><i class="g2"></i><i class="g3"></i> 많음</span></div>
+        </header>
+        <div class="heatbox"><table id="matrix" class="heat" aria-label="월별 오류 유형 건수"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+
       </section>
     </div>
 
     <section class="panel records dash-records" id="d-records" aria-labelledby="d-rec-title">
-      <h2 id="d-rec-title">상세 내역</h2>
-      <p class="rowcount" id="d-rowcount"></p>
+      <div class="rec-head">
+        <h2 id="d-rec-title">상세 내역</h2>
+        <div class="rec-stats" id="d-rowcount"></div>
+      </div>
       <div class="tablebox">
         <table aria-label="대시보드 상세 내역">
-          <thead><tr><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th>메모</th></tr></thead>
+          <thead><tr><th>날짜</th><th>컬렉션</th><th>입고번호</th><th>수정 전</th><th>수정 후</th><th>포토카드명</th><th>유형</th><th>처리</th><th>라벨팀</th><th class="memo">메모</th></tr></thead>
           <tbody id="d-rows"></tbody>
         </table>
       </div>
@@ -377,7 +500,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     form: { type: '', action: '수정' }, editingId: null, saving: false,
   };
 
-  $('#lg-fix').style.background = 'var(--fix)'; $('#lg-buy').style.background = 'var(--buy)'; $('#lg-etc').style.background = '#A0A4AB';
+  $('#lg-fix').style.background = 'var(--bar-fix)'; $('#lg-buy').style.background = 'var(--bar-buy)'; $('#lg-etc').style.background = 'var(--bar-etc)';
 
   // ---------- 데이터 ----------
   const qty = (r) => Math.max(1, Number(r.qty) || 1);
@@ -397,7 +520,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   // ---------- 그리기 ----------
   function renderAll() {
-    renderFilters(); renderSummary(); renderBars(); renderMatrix(); renderRows(); renderDashRows();
+    renderFilters(); renderSummary(); renderDashStats(); renderBars(); renderMatrix(); renderRows(); renderDashRows();
   }
 
   function renderFilters() {
@@ -407,12 +530,14 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     mSel.replaceChildren(new Option('전체 기간', ''), ...ms.map((m) => new Option(monthLabel(m), m)));
     mSel.value = state.f.month;
     const dm = $('#d-month'); dm.replaceChildren(...[...mSel.options].map((o) => new Option(o.text, o.value))); dm.value = state.f.month;
-    const types = sortKo(new Set([...state.lists.types, ...state.records.map((r) => r.type)].filter(Boolean)));
+    // 선택지는 '목록 관리'에 지금 등록된 유형·라벨팀만 보여줘요 (퇴사자 등 목록에서 뺀 이름은 숨겨요)
+    const types = sortKo(new Set(state.lists.types.filter(Boolean)));
+    if (state.f.type && !types.includes(state.f.type)) state.f.type = '';
     const tSel = $('#q-type');
     tSel.replaceChildren(new Option('전체 유형', ''), ...types.map((t) => new Option(t, t)));
     tSel.value = state.f.type;
-    const labs = [...new Set([...state.lists.labelers, ...state.records.map((r) => r.labeler || '미기재')])].filter(Boolean)
-      .sort((a, b) => (a === '미기재') - (b === '미기재') || a.localeCompare(b, 'ko'));
+    const labs = sortKo(new Set(state.lists.labelers.filter(Boolean)));
+    if (state.f.labeler && !labs.includes(state.f.labeler)) state.f.labeler = '';
     const lSel = $('#q-labeler');
     lSel.replaceChildren(new Option('전체 라벨팀', ''), ...labs.map((t) => new Option(t, t)));
     lSel.value = state.f.labeler;
@@ -426,26 +551,20 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     if (!state.loaded) return;
     const rows = state.records.filter((r) => inFilter(r, { noText: true }));
     const total = rows.reduce((a, r) => a + qty(r), 0);
-    const by = new Map(); rows.forEach((r) => by.set(r.type, (by.get(r.type) || 0) + qty(r)));
-    const top = [...by].sort((a, b) => b[1] - a[1])[0];
-    const buy = rows.filter((r) => r.action === '구매').reduce((a, r) => a + qty(r), 0);
-    const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
-    const who = state.f.labeler ? ` ${state.f.labeler} 님의` : '';
-    const s = $('#summary'); s.replaceChildren();
-    if (!total) { s.append(`${period}${who} 기록이 아직 없어요.`); }
-    else {
-      s.append(`${period}${who} 수정 내역은 `, el('b', null, `${fmt(total)}건`), '이고, 가장 많은 유형은 ',
-        el('b', null, top[0]), `(${fmt(top[1])}건, ${(top[1] / total * 100).toFixed(1)}%)이에요. 구매로 처리한 건은 `,
-        el('b', null, `${fmt(buy)}건`), `(${(buy / total * 100).toFixed(1)}%)이에요.`);
-    }
+    // 상세 내역 제목 옆 숫자: 지금 고른 조건의 건수 + 오늘 날짜로 적힌 건수
+    const parts = [state.f.month ? monthLabel(state.f.month) : '전체 기간', state.f.labeler, state.f.type].filter(Boolean);
+    $('#k-total-label').textContent = parts.join(' · ');
     $('#k-total').textContent = fmt(total);
-    const dates = rows.map((r) => r.date).filter(Boolean).sort();
-    $('#k-total-s').textContent = dates.length ? `${dayLabel(dates[0])}~${dayLabel(dates[dates.length - 1])}` : ' ';
+    const t = today();
+    $('#k-today-label').textContent = `오늘(${dayLabel(t)})`;
+    $('#k-today').textContent = fmt(state.records.filter((r) => r.date === t && (!state.f.labeler || r.labeler === state.f.labeler)).length);
 
   }
 
+  let barsExpanded = false;
   function renderBars() {
     const box = $('#bars'); box.replaceChildren();
+    const sub = $('#bars-sub');
     if (!state.loaded) { box.append(el('div', 'empty', '불러오는 중이에요.')); return; }
     const rows = state.records.filter((r) => inFilter(r, { noType: true, noText: true }));
     const g = new Map();
@@ -455,56 +574,96 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       if (r.action === '수정') o.fix += q; else if (r.action === '구매') o.buy += q; else o.etc += q;
     });
     const data = [...g.values()].sort((a, b) => b.n - a.n);
+    const sum = data.reduce((a, o) => a + o.n, 0); const buyAll = data.reduce((a, o) => a + o.buy, 0);
+    sub.replaceChildren();
+    sub.append(`${state.f.month ? monthLabel(state.f.month) : '전체 기간'}${state.f.labeler ? ` · ${state.f.labeler} 님` : ''} `, el('b', null, `${fmt(sum)}건`),
+      sum ? ` · 구매 ${fmt(buyAll)}건 (${(buyAll / sum * 100).toFixed(0)}%)` : '');
     if (!data.length) { box.append(el('div', 'empty', '이 조건에 해당하는 기록이 없어요.')); return; }
-    const sum = data.reduce((a, o) => a + o.n, 0); const max = data[0].n;
-    const tip = el('div', 'tip'); tip.hidden = true;
-    data.forEach((o) => {
-      const row = el('div', 'bar' + (state.f.type && state.f.type !== o.type ? ' dim' : ''));
-      row.tabIndex = 0; row.setAttribute('role', 'button');
-      row.setAttribute('aria-label', `${o.type} ${o.n}건, 구매 ${o.buy}건. 눌러서 이 유형만 보기`);
+    const max = data[0].n;
+    const LIMIT = 12;
+    const shown = barsExpanded || data.length <= LIMIT + 1 ? data : data.slice(0, LIMIT);
+    if (state.f.type && !shown.some((o) => o.type === state.f.type)) { const sel = data.find((o) => o.type === state.f.type); if (sel) shown.push(sel); }
+    shown.forEach((o) => {
+      const on = state.f.type === o.type;
+      const row = el('div', 'bar' + (on ? ' on' : state.f.type ? ' dim' : ''));
+      row.tabIndex = 0; row.setAttribute('role', 'button'); row.setAttribute('aria-pressed', String(on));
+      row.title = `${o.type} · 수정 ${o.fix} · 구매 ${o.buy}${o.etc ? ` · 미기재 ${o.etc}` : ''} (누르면 상세 내역에서 보기)`;
+      row.setAttribute('aria-label', `${o.type} ${o.n}건, 전체의 ${(o.n / sum * 100).toFixed(0)}%, 구매 ${o.buy}건. 눌러서 이 유형만 보기`);
       const lb = el('div', 'lb'); const d = el('i', 'dot'); d.style.background = typeColor(o.type); lb.append(d, el('span', null, o.type));
       const tr = el('div', 'tr');
-      [[o.fix, 'var(--fix)'], [o.buy, 'var(--buy)'], [o.etc, '#A0A4AB']].forEach(([n, c]) => { if (!n) return; const s = el('span'); s.style.width = `${n / max * 100}%`; s.style.background = c; tr.append(s); });
-      const n = el('div', 'n'); n.append(el('b', null, fmt(o.n))); if (o.buy) n.append(el('em', null, ` · 구매 ${fmt(o.buy)}`));
+      [[o.fix, 'var(--bar-fix)'], [o.buy, 'var(--bar-buy)'], [o.etc, 'var(--bar-etc)']].forEach(([v, c]) => { if (!v) return; const s = el('span'); s.style.width = `${v / max * 100}%`; s.style.background = c; tr.append(s); });
+      const n = el('div', 'n'); n.append(el('b', null, fmt(o.n)), ` · ${(o.n / sum * 100).toFixed(0)}%`);
+      if (o.buy) n.append(el('span', 'buy', `구매 ${fmt(o.buy)}`));
       row.append(lb, tr, n);
-      const pick = () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); scrollToDash(); };
+      const pick = () => { state.f.type = on ? '' : o.type; renderAll(); scrollToDash(); };
       row.addEventListener('click', pick);
       row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
-      const show = (e) => {
-        tip.replaceChildren(el('div', null, o.type), el('div', null, `${fmt(o.n)}건 · ${(o.n / sum * 100).toFixed(1)}%`), el('div', null, `수정 ${fmt(o.fix)} · 구매 ${fmt(o.buy)}${o.etc ? ` · 기타 ${fmt(o.etc)}` : ''}`));
-        tip.firstChild.style.fontWeight = '600'; tip.hidden = false;
-        const b = box.getBoundingClientRect(), r = row.getBoundingClientRect();
-        const x = (e && e.clientX ? e.clientX : r.left + r.width / 2) - b.left + 12;
-        tip.style.left = `${Math.max(0, Math.min(x, box.clientWidth - tip.offsetWidth))}px`; tip.style.top = `${r.bottom - b.top + 4}px`;
-      };
-      row.addEventListener('pointermove', show); row.addEventListener('focus', show);
-      row.addEventListener('pointerleave', () => { tip.hidden = true; }); row.addEventListener('blur', () => { tip.hidden = true; });
       box.append(row);
     });
-    box.append(tip);
+    if (data.length > LIMIT + 1) {
+      const rest = data.slice(LIMIT); const restN = rest.reduce((a, o) => a + o.n, 0);
+      const mb = el('button', 'more-types', barsExpanded ? '접기' : `그 외 ${rest.length}개 유형 · ${fmt(restN)}건 더 보기`); mb.type = 'button';
+      mb.addEventListener('click', () => { barsExpanded = !barsExpanded; renderBars(); });
+      box.append(mb);
+    }
+  }
+
+  // ---------- 대시보드 요약 숫자 ----------
+  const prevMonth = (m) => { const [y, mm] = m.split('-').map(Number); const d = new Date(y, mm - 2, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+  function renderDashStats() {
+    if (!$('#d-stats') || !state.loaded) return;
+    const byLab = (r) => !state.f.labeler || (r.labeler || '미기재') === state.f.labeler;
+    const m = state.f.month;
+    const cur = state.records.filter((r) => byLab(r) && (!m || ym(r) === m));
+    const prev = m ? state.records.filter((r) => byLab(r) && ym(r) === prevMonth(m)) : [];
+    const count = (rs) => { const g = new Map(); rs.forEach((r) => g.set(r.type || '미기재', (g.get(r.type || '미기재') || 0) + 1)); return g; };
+    const cg = count(cur), pg = count(prev);
+    const who = state.f.labeler ? `${state.f.labeler} 님 ` : '';
+    $('#s1-k').textContent = `${who}${m ? monthLabel(m) : '전체 기간'} 오류 건수`;
+    $('#s1-v').textContent = `${fmt(cur.length)}건`;
+    const s1 = $('#s1-s'); s1.replaceChildren();
+    if (m && prev.length) {
+      const diff = cur.length - prev.length;
+      s1.append(el('div', null, `${monthLabel(prevMonth(m))} ${fmt(prev.length)}건 대비`));
+      s1.append(el('span', `delta ${diff > 0 ? 'up' : diff < 0 ? 'down' : 'same'}`, diff === 0 ? '변화 없음' : `${diff > 0 ? '▲' : '▼'} ${fmt(Math.abs(diff))}건`));
+    } else s1.textContent = m ? '지난달 기록이 없어요' : `${months().length}개월 누적`;
+    const top = [...cg].sort((a, b) => b[1] - a[1])[0];
+    $('#s2-v').replaceChildren(top ? typePill(top[0]) : '—');
+    const s2 = $('#s2-s'); s2.replaceChildren();
+    if (top) s2.append(el('b', null, `${fmt(top[1])}건`), `전체의 ${(top[1] / cur.length * 100).toFixed(0)}%`);
   }
 
   function renderMatrix() {
-    const t = $('#matrix'); const head = t.tHead; const body = t.tBodies[0];
-    head.replaceChildren(); body.replaceChildren();
+    const t = $('#matrix'); const head = t.tHead; const body = t.tBodies[0]; const foot = t.tFoot;
+    head.replaceChildren(); body.replaceChildren(); foot.replaceChildren();
     if (!state.loaded) return;
     const rows = state.records.filter((r) => inFilter(r, { noMonth: true, noType: true, noText: true }));
     const ms = [...new Set(rows.map(ym).filter(Boolean))].sort();
     const g = new Map();
     rows.forEach((r) => { if (!g.has(r.type)) g.set(r.type, { type: r.type, total: 0, m: {} }); const o = g.get(r.type); const q = qty(r); o.total += q; o.m[ym(r)] = (o.m[ym(r)] || 0) + q; });
     const data = [...g.values()].sort((a, b) => b.total - a.total);
-    const hr = el('tr'); hr.append(el('th', null, '유형')); ms.forEach((m) => hr.append(el('th', 'num', monthLabel(m)))); hr.append(el('th', 'num', '합계')); head.append(hr);
+    $('#matrix-sub').textContent = ms.length ? `${monthLabel(ms[0])}~${monthLabel(ms[ms.length - 1])}${state.f.labeler ? ` · ${state.f.labeler} 님` : ''} · 총 ${fmt(rows.length)}건` : ' ';
+    const latest = ms[ms.length - 1];
+    const hr = el('tr'); hr.append(el('th', null, '유형'));
+    ms.forEach((m) => hr.append(el('th', m === latest ? 'latest' : null, monthLabel(m)))); hr.append(el('th', null, '합계')); head.append(hr);
     if (!data.length) { const tr = el('tr'); const td = el('td', 'empty', '기록이 없어요.'); td.colSpan = ms.length + 2; tr.append(td); body.append(tr); return; }
     const max = Math.max(1, ...data.flatMap((o) => ms.map((m) => o.m[m] || 0)));
     data.forEach((o) => {
-      const tr = el('tr'); tr.style.cursor = 'pointer';
-      if (state.f.type && state.f.type !== o.type) tr.style.opacity = '.4';
-      const c = el('td'); c.append(typePill(o.type)); tr.append(c);
-      ms.forEach((m) => { const v = o.m[m] || 0; const td = el('td', 'num', fmt(v)); if (v) td.style.background = `color-mix(in srgb, var(--accent) ${Math.round(v / max * 50)}%, transparent)`; else td.style.color = 'var(--muted)'; tr.append(td); });
-      const tot = el('td', 'num', fmt(o.total)); tot.style.fontWeight = '600'; tr.append(tot);
+      const tr = el('tr'); if (state.f.type && state.f.type !== o.type) tr.className = 'dim';
+      const c = el('td', 'lbl'); c.append(typePill(o.type)); tr.append(c);
+      ms.forEach((m) => {
+        const v = o.m[m] || 0; const td = el('td', 'cell' + (v ? '' : ' zero'), v ? fmt(v) : '–');
+        if (v) { const k = v / max; td.style.background = `color-mix(in srgb, var(--accent) ${Math.round(8 + k * 52)}%, var(--surface))`; if (k > .55) td.style.color = '#fff'; }
+        else td.style.background = 'var(--field)';
+        tr.append(td);
+      });
+      tr.append(el('td', 'tot', fmt(o.total)));
       tr.addEventListener('click', () => { state.f.type = state.f.type === o.type ? '' : o.type; renderAll(); scrollToDash(); });
       body.append(tr);
     });
+    const fr = el('tr'); fr.append(el('td', null, '월 합계'));
+    ms.forEach((m) => fr.append(el('td', null, fmt(data.reduce((a, o) => a + (o.m[m] || 0), 0)))));
+    fr.append(el('td', 'tot', fmt(rows.length))); foot.append(fr);
   }
 
   // 포토카드 번호를 앞부분(AA04_)과 뒷숫자(12345)로 나눠 그려요. 뒷숫자를 더블클릭하면 숫자만 선택돼요.
@@ -540,7 +699,8 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     }
     if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 12; tr.append(td); tb.append(tr); return; }
     rows.forEach((r, i) => {
-      const tr = el('tr'); if (entry.rows.some((x) => x.editingId === r.id)) tr.className = 'is-editing'; if (r.id === state.flashId) tr.classList.add('flash');
+      if (inline.id === r.id) { tb.append(renderInlineRow(r, numbered ? i + 1 : 0)); return; }
+      const tr = el('tr'); if (r.id === state.flashId) tr.classList.add('flash');
       if (numbered) tr.append(el('td', 'num no-col', String(i + 1)));
       tr.append(el('td', 'code', r.date || ''), copyCell(r.collection), copyCell(r.inbound));
       tr.append(codeCell(r.before), codeCell(r.after));
@@ -548,18 +708,92 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       const tt = el('td'); tt.append(typePill(r.type || '미기재')); tr.append(tt);
       const ta = el('td'); ta.append(actPill(r.action || '미기재')); tr.append(ta);
       const tl = el('td', null, r.labeler && r.labeler !== '미기재' ? r.labeler : '—'); if (!r.labeler || r.labeler === '미기재') tl.style.color = 'var(--muted)'; tr.append(tl);
-      tr.append(el('td', null, r.memo || ''));
+      tr.append(el('td', 'memo', r.memo || ''));
       const te = el('td'); te.hidden = !state.canWrite; te.style.whiteSpace = 'nowrap';
       if (state.canWrite) {
-        const eb = el('button', 'linkbtn', '수정'); eb.type = 'button'; eb.addEventListener('click', () => startEdit(r));
-        const db = el('button', 'linkbtn danger', confirmId === r.id ? '정말 삭제' : '삭제'); db.type = 'button';
-        db.addEventListener('click', () => { if (confirmId === r.id) { confirmId = null; removeRecord(r); } else { confirmId = r.id; renderRows(); } });
+        const eb = el('button', 'rowbtn edit', '수정'); eb.type = 'button'; eb.addEventListener('click', () => startInline(r));
+        const db = el('button', 'rowbtn del', '삭제'); db.type = 'button';
+        db.addEventListener('click', () => { db.disabled = true; removeRecord(r); });   // 바로 지우고, 아래 팝업의 [취소]로 되살릴 수 있어요
         te.append(eb, db);
       }
       tr.append(te);
       tb.append(tr);
     });
     state.flashId = null;
+    if (inline.id && inline.focus) {   // 실시간 새로고침으로 표가 다시 그려져도 고치던 칸에 커서를 돌려놔요
+      const f = tb.querySelector(`[data-ik="${inline.focus}"]`); if (f && document.activeElement !== f) { f.focus(); if (f.setSelectionRange && f.value) { const n = f.value.length; f.setSelectionRange(n, n); } }
+    }
+  }
+
+  // ---------- 상세 내역에서 바로 수정 ----------
+  const inline = { id: null, draft: null, err: '', bad: [], focus: '', saving: false };
+  const INLINE_FIELDS = ['date', 'collection', 'inbound', 'before', 'after', 'product', 'type', 'action', 'labeler', 'memo'];
+  function startInline(r) {
+    if (inline.id && inline.id !== r.id && !confirmLeave()) return;
+    inline.id = r.id; inline.err = ''; inline.bad = []; inline.focus = 'product';
+    inline.draft = {}; INLINE_FIELDS.forEach((k) => { inline.draft[k] = r[k] || ''; });
+    renderRows();
+  }
+  function confirmLeave() { return true; }   // 다른 줄을 누르면 고치던 줄은 저장하지 않고 닫아요
+  function cancelInline() { inline.id = null; inline.draft = null; inline.focus = ''; renderRows(); }
+  function renderInlineRow(r, no) {
+    const d = inline.draft; const tr = el('tr', 'is-editing inline-row');
+    if (no) tr.append(el('td', 'num no-col', String(no)));
+    const input = (k, cls) => {
+      const td = el('td', 'ie' + (inline.bad.includes(k) ? ' bad' : '') + (cls ? ' ' + cls : ''));
+      const inp = document.createElement('input'); inp.value = d[k]; inp.dataset.ik = k; inp.autocomplete = 'off';
+      inp.size = Math.max(5, Math.min(k === 'product' ? 40 : 14, String(d[k] || '').length + 1));   // 표 폭이 갑자기 늘어나지 않게 내용 길이만큼만
+      if (k === 'date') inp.placeholder = 'YYYY-MM-DD';
+      inp.addEventListener('input', () => { d[k] = inp.value; });
+      inp.addEventListener('focus', () => { inline.focus = k; });
+      inp.addEventListener('keydown', onInlineKey);
+      inp.setAttribute('aria-label', ({ date: '날짜', collection: '컬렉션', inbound: '입고번호', before: '수정 전', after: '수정 후', product: '포토카드명', memo: '메모' })[k]);
+      td.append(inp); return td;
+    };
+    const select = (k) => {
+      const td = el('td', 'ie sel-' + k + (inline.bad.includes(k) ? ' bad' : ''));
+      const s = document.createElement('select'); s.dataset.ik = k; s.replaceChildren(...optionsFor(k, d[k])); s.value = d[k];
+      s.addEventListener('change', () => { d[k] = s.value; });
+      s.addEventListener('focus', () => { inline.focus = k; });
+      s.addEventListener('keydown', onInlineKey);
+      s.setAttribute('aria-label', SELECT_COLS[k]);
+      td.append(s); return td;
+    };
+    tr.append(input('date'), input('collection'), input('inbound'), input('before'), input('after'), input('product', 'wide'));
+    tr.append(select('type'), select('action'), select('labeler'), input('memo', 'memo'));
+    const te = el('td', 'ie-act');
+    const sb = el('button', 'rowbtn save', inline.saving ? '저장 중' : '저장'); sb.type = 'button'; sb.disabled = inline.saving; sb.addEventListener('click', saveInline);
+    const cb = el('button', 'rowbtn edit', '취소'); cb.type = 'button'; cb.addEventListener('click', cancelInline);
+    te.append(sb, cb);
+    if (inline.err) te.append(el('div', 'ie-err', inline.err));
+    tr.append(te);
+    return tr;
+  }
+  function onInlineKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); cancelInline(); }
+    else if (e.key === 'Enter' && !e.isComposing && e.target.tagName === 'INPUT') { e.preventDefault(); saveInline(); }
+  }
+  async function saveInline() {
+    if (!inline.id || inline.saving) return;
+    const d = {}; INLINE_FIELDS.forEach((k) => { d[k] = cleanCell(k, inline.draft[k]); });
+    d.date = normDate(d.date, today().slice(0, 4)); d.qty = 1;
+    inline.bad = []; const miss = [];
+    if (!d.date) { miss.push('날짜'); inline.bad.push('date'); }
+    if (!d.product) { miss.push('포토카드명'); inline.bad.push('product'); }
+    if (!d.type) { miss.push('유형'); inline.bad.push('type'); }
+    if (!d.action) { miss.push('처리'); inline.bad.push('action'); }
+    if (!d.labeler) { miss.push('라벨팀'); inline.bad.push('labeler'); }
+    inline.err = miss.length ? `${miss.join(', ')} 확인` : '';
+    if (!inline.err && d.collection && state.records.some((x) => x.id !== inline.id && String(x.collection) === d.collection)) { inline.err = '이미 있는 컬렉션 번호'; inline.bad.push('collection'); }
+    if (inline.err) { renderRows(); return; }
+    inline.saving = true; renderRows();
+    const id = inline.id;
+    const { error } = await state.db.from('records').update({ ...toRow(d), updated_at: new Date().toISOString() }).eq('id', id);
+    inline.saving = false;
+    if (error) { logErr('수정', error); inline.err = `저장 실패: ${errText(error)}`; renderRows(); return; }
+    const rec = state.records.find((x) => x.id === id); if (rec) Object.assign(rec, d);   // 새로고침 전에 화면에 바로 반영
+    inline.id = null; inline.draft = null; inline.focus = ''; state.flashId = id;
+    renderAll(); toast('수정했어요.');
   }
 
   // ---------- 대시보드 상세 내역 (보기 전용) ----------
@@ -574,29 +808,31 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     const rows = state.records.filter((r) => inFilter(r, { noText: true }))
       .sort((a, b) => (a.date || '').localeCompare(b.date || '') || (a.createdAt || '').localeCompare(b.createdAt || '') || a.id.localeCompare(b.id));
     const period = state.f.month ? monthLabel(state.f.month) : '전체 기간';
-    rc.append(`${period}${state.f.labeler ? ` · ${state.f.labeler} 님` : ''} `);
-    if (state.f.type) rc.append(typePill(state.f.type), ' ');
-    rc.append(el('b', null, `${fmt(rows.length)}건`));
+    const chip = el('span', 'cs');
+    chip.append(el('em', null, [period, state.f.labeler, state.f.type].filter(Boolean).join(' · ')), el('b', null, fmt(rows.length)), '건');
+    rc.append(chip);
     if (!rows.length) { const tr = el('tr'); const td = el('td', 'empty', '이 조건에 해당하는 기록이 없어요.'); td.colSpan = 10; tr.append(td); tb.append(tr); return; }
     rows.forEach((r) => {
       const tr = el('tr');
-      tr.append(el('td', 'code', r.date || ''), copyCell(r.collection), copyCell(r.inbound), codeCell(r.before), codeCell(r.after), el('td', null, r.product || ''));
+      // 대시보드는 조회용이라 클릭 복사 없이 글자만 보여줘요
+      tr.append(...['date', 'collection', 'inbound', 'before', 'after'].map((k) => el('td', 'code', r[k] || '')), el('td', null, r.product || ''));
       const tt = el('td'); tt.append(typePill(r.type || '미기재')); tr.append(tt);
       const ta = el('td'); ta.append(actPill(r.action || '미기재')); tr.append(ta);
       const tl = el('td', null, r.labeler || '—'); if (!r.labeler) tl.style.color = 'var(--muted)'; tr.append(tl);
-      tr.append(el('td', null, r.memo || ''));
+      tr.append(el('td', 'memo', r.memo || ''));
       tb.append(tr);
     });
   }
 
   // ---------- 입력 시트 ----------
   const GRID_COLS = ['date', 'collection', 'inbound', 'before', 'after', 'product', 'type', 'labeler', 'memo', 'action'];
-  const SELECT_COLS = { type: '사유', labeler: '라벨팀', action: '처리' };
+  const SELECT_COLS = { type: '유형', labeler: '라벨팀', action: '처리' };
   const NAME_FIX = { '은진': '박은진' }; const TYPE_FIX = { '스폐셜': '스페셜' };
   const blankRow = () => ({ date: '', collection: '', inbound: '', before: '', after: '', product: '', type: '', labeler: '', memo: '', action: '', err: '', bad: [], editingId: null });
-  const entry = { rows: Array.from({ length: 8 }, blankRow) };
+  const BASE_ROWS = 5;
+  const entry = { rows: Array.from({ length: BASE_ROWS }, blankRow) };
   const rowHasContent = (r) => GRID_COLS.some((k) => k !== 'date' && String(r[k] || '').trim());
-  const ensureBlankTail = () => { let n = 0; for (let i = entry.rows.length - 1; i >= 0 && !rowHasContent(entry.rows[i]) && !entry.rows[i].editingId; i--) n++; for (; n < 3; n++) entry.rows.push(blankRow()); };
+  const ensureBlankTail = () => { let n = 0; for (let i = entry.rows.length - 1; i >= 0 && !rowHasContent(entry.rows[i]) && !entry.rows[i].editingId; i--) n++; for (; n < 1; n++) entry.rows.push(blankRow()); while (entry.rows.length < BASE_ROWS) entry.rows.push(blankRow()); };
 
   function normDate(s, fallbackYear) {
     s = String(s || '').trim(); if (!s) return '';
@@ -709,7 +945,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
       const miss = [];
       if (!d.date) { miss.push('날짜'); r.bad.push('date'); }
       if (!d.product) { miss.push('포토카드명'); r.bad.push('product'); }
-      if (!d.type) { miss.push('사유'); r.bad.push('type'); }
+      if (!d.type) { miss.push('유형'); r.bad.push('type'); }
       if (!d.labeler) { miss.push('라벨팀'); r.bad.push('labeler'); }
       if (!d.action) { miss.push('처리'); r.bad.push('action'); }
       if (miss.length) r.err = `${miss.join(', ')}을(를) 확인해 주세요`;
@@ -774,8 +1010,39 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   }
   function endEdit() { entry.rows = entry.rows.filter((x) => !x.editingId); renderGrid(); renderRows(); }
   async function removeRecord(r) {
-    try { const { error } = await state.db.from('records').delete().eq('id', r.id); if (error) throw error; if (entry.rows.some((x) => x.editingId === r.id)) endEdit(); msg('삭제했어요.', 'ok'); }
-    catch (e) { logErr('삭제', e); msg(`삭제하지 못했어요. ${errText(e)}`, 'err'); renderRows(); }
+    const snap = { ...r };   // 되돌리기용으로 지우기 전 내용을 기억해 둬요
+    try {
+      const { error } = await state.db.from('records').delete().eq('id', r.id); if (error) throw error;
+      if (inline.id === r.id) { inline.id = null; inline.draft = null; }
+      if (entry.rows.some((x) => x.editingId === r.id)) endEdit();
+      showUndo(`${snap.product || '기록'} (${snap.date}) 기록을 삭제했어요.`, () => restoreRecord(snap));
+    } catch (e) { logErr('삭제', e); msg(`삭제하지 못했어요. ${errText(e)}`, 'err'); renderRows(); }
+  }
+  async function restoreRecord(r) {
+    const { error } = await state.db.from('records').insert({ id: r.id, ...toRow(r), qty: r.qty || 1, source: r.source || 'entry', created_at: r.createdAt || undefined });
+    if (error) { logErr('되돌리기', error); toast(`삭제를 취소하지 못했어요. ${errText(error)}`); return; }
+    state.flashId = r.id; toast('삭제를 취소했어요.');
+  }
+
+  // 삭제 직후 화면 아래에 [취소] 버튼이 있는 알림을 8초 동안 띄워요
+  let undoTimer = null;
+  function showUndo(text, onUndo) {
+    let box = document.getElementById('undo');
+    if (!box) {
+      box = el('div', 'undo-toast'); box.id = 'undo'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite');
+      box.append(el('span', 'undo-text'), el('button', 'undo-btn', '취소'), el('button', 'undo-x', '✕'));
+      box.querySelector('.undo-btn').setAttribute('aria-label', '삭제 취소');
+      box.querySelector('.undo-x').setAttribute('aria-label', '알림 닫기');
+      document.body.append(box);
+    }
+    box.querySelector('.undo-text').textContent = text;
+    const btn = box.querySelector('.undo-btn'); const x = box.querySelector('.undo-x');
+    btn.type = 'button'; x.type = 'button'; btn.disabled = false;
+    const close = () => { box.hidden = true; clearTimeout(undoTimer); };
+    btn.onclick = async () => { btn.disabled = true; close(); await onUndo(); };
+    x.onclick = close;
+    box.hidden = false;
+    clearTimeout(undoTimer); undoTimer = setTimeout(close, 8000);
   }
   async function saveLists(patch) {
     if (!state.db || !state.canWrite) return;
@@ -838,10 +1105,10 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     const range = document.createRange(); range.selectNodeContents(n);
     const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
   };
-  ['#rows', '#d-rows'].forEach((s) => { $(s).addEventListener('click', onCopyClick); $(s).addEventListener('dblclick', onNumDblClick); });
+  ['#rows'].forEach((s) => { $(s).addEventListener('click', onCopyClick); $(s).addEventListener('dblclick', onNumDblClick); });
   $('#save').addEventListener('click', saveGrid);
   $('#add-rows').addEventListener('click', () => { for (let i = 0; i < 5; i++) entry.rows.push(blankRow()); renderGrid(); });
-  $('#clear-rows').addEventListener('click', () => { entry.rows = Array.from({ length: 8 }, blankRow); renderGrid(); renderRows(); msg(''); });
+  $('#clear-rows').addEventListener('click', () => { entry.rows = Array.from({ length: BASE_ROWS }, blankRow); renderGrid(); renderRows(); msg(''); });
   $('#q-month').addEventListener('change', (e) => { state.f.month = e.target.value; renderAll(); });
   $('#q-type').addEventListener('change', (e) => { state.f.type = e.target.value; renderAll(); });
   $('#q-labeler').addEventListener('change', (e) => { state.f.labeler = e.target.value; renderAll(); });
@@ -853,7 +1120,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
   $('#m-type-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTo('types', '#m-type-in'); });
   $('#export').addEventListener('click', async () => {
     const rows = state.records.filter((r) => inFilter(r)).sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-    const cols = [['date', '날짜'], ['type', '사유'], ['product', '포토카드명'], ['before', '수정 전'], ['after', '수정 후'], ['action', '처리'], ['labeler', '라벨팀'], ['collection', '컬렉션'], ['inbound', '입고번호'], ['memo', '메모']];
+    const cols = [['date', '날짜'], ['type', '유형'], ['product', '포토카드명'], ['before', '수정 전'], ['after', '수정 후'], ['action', '처리'], ['labeler', '라벨팀'], ['collection', '컬렉션'], ['inbound', '입고번호'], ['memo', '메모']];
     const esc = (v) => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
     const csv = '\ufeff' + [cols.map((c) => c[1]).join(','), ...rows.map((r) => cols.map(([k]) => esc(r[k])).join(','))].join('\n');
     const a = document.createElement('a');
@@ -958,7 +1225,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     catch (e) {
       logErr('처음 불러오기', e);
       $('#status').textContent = `기록을 불러오지 못했어요: ${errText(e)}`;
-      $('#summary').textContent = '기록을 불러오지 못했어요. 오른쪽 위 안내 문구를 확인해 주세요.';
+      $('#summary').textContent = '기록을 불러오지 못했어요. 오른쪽 위 안내 문구를 확인해 주세요.'; $('#summary').hidden = false;
     }
     channel = state.db.channel('label-log')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'records' }, scheduleReload)
@@ -973,7 +1240,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
 
   const cfg = window.LABEL_LOG_CONFIG || {};
   if (!window.supabase || !cfg.SUPABASE_URL || cfg.SUPABASE_URL.includes('YOUR-PROJECT') || !cfg.SUPABASE_KEY || cfg.SUPABASE_KEY.includes('YOUR-KEY')) {
-    $('#summary').textContent = 'index.html 위쪽의 SUPABASE_URL과 SUPABASE_KEY를 먼저 채워 주세요.';
+    $('#summary').textContent = 'index.html 위쪽의 SUPABASE_URL과 SUPABASE_KEY를 먼저 채워 주세요.'; $('#summary').hidden = false;
     state.canWrite = false; applyWrite();
   } else {
     state.db = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY);
