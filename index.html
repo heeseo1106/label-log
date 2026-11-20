@@ -1161,7 +1161,7 @@ tr.is-editing td { background: color-mix(in srgb, var(--edit) 14%, transparent);
     }
     state.records = all.map(fromRow);
     state.loaded = true;
-    $('#status').textContent = `전체 ${fmt(state.records.reduce((a, r) => a + qty(r), 0))}건, 실시간으로 반영돼요`;
+    $('#status').textContent = '';   // 정상일 땐 비워 두고, 문제가 생겼을 때만 안내해요
     renderAll();
   }
   async function loadLists() {
